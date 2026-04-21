@@ -2,909 +2,1101 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="The Docket — a rubber-stamped ledger of hackathons entered by Alexandre Tsetskhladze.">
-<title>The Docket · Alexandre Tsetskhladze</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Alexandre Tsetskhladze — Hackathons</title>
+<meta name="description" content="A selected record of hackathons — an interactive portfolio by Alexandre Tsetskhladze.">
+<meta property="og:title" content="Alexandre Tsetskhladze — Hackathons">
+<meta property="og:description" content="A selected record of hackathons — an interactive portfolio by Alexandre Tsetskhladze.">
+<meta property="og:type" content="website">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..900,0..100,0..1;1,9..144,400..900,0..100,0..1&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<style>@import url('https://fonts.cdnfonts.com/css/departure-mono');</style>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          paper: '#F2EDE4',
-          'paper-deep': '#E6DDCB',
-          ink: '#141312',
-          'ink-fade': '#8A837A',
-          'stamp-red': '#C8302A',
-        },
-        fontFamily: {
-          display: ['Fraunces', 'Times New Roman', 'serif'],
-          mono:    ['Departure Mono', 'Courier Prime', 'ui-monospace', 'monospace'],
-        },
-      },
-    },
-  };
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --paper: #F2EDE4;
-    --paper-deep: #E6DDCB;
-    --ink: #141312;
-    --ink-fade: #8A837A;
-    --stamp-red: #C8302A;
-    --rule: #2B2826;
-
-    --font-mono:    'Departure Mono', 'Courier Prime', ui-monospace, monospace;
-    --font-display: 'Fraunces', 'Times New Roman', Georgia, serif;
+    --pitch:   #08080D;
+    --lift:    #13131A;
+    --bone:    #EDE6D5;
+    --bone-dim: rgba(237,230,213,0.55);
+    --flare:   #FF2A1A;
+    --acid:    #D8FF00;
+    --plasma:  #6A2EFF;
+    --font-display: 'Bricolage Grotesque', ui-sans-serif, sans-serif;
+    --font-mono:    'Azeret Mono', ui-monospace, monospace;
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-
-  body {
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--pitch);
+    color: var(--bone);
     font-family: var(--font-mono);
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    font-feature-settings: "tnum" 1, "lnum" 1;
+    overflow: hidden;
+    height: 100%; width: 100%;
+    cursor: none;
+    overscroll-behavior: none;
   }
 
-  /* paper grain overlay */
-  body::before {
-    content: "";
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 0.35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    opacity: 0.35;
-    mix-blend-mode: multiply;
-  }
+  canvas { display: block; touch-action: none; }
+  #scene { position: fixed; inset: 0; z-index: 1; }
 
-  /* subtle halftone dots behind sections */
-  .halftone {
-    position: absolute; inset: 0;
-    background-image: radial-gradient(circle, var(--ink) 0.7px, transparent 1px);
-    background-size: 10px 10px;
-    opacity: 0.035;
-    pointer-events: none;
-    z-index: 0;
-  }
+  /* UI */
+  .ui { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+  .ui > * { pointer-events: auto; }
 
-  /* folio corners — fixed */
-  .folio {
-    position: fixed;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--ink-fade);
-    z-index: 3;
-    pointer-events: none;
-    text-transform: uppercase;
-  }
-  .folio.tl { top: 16px; left: 20px; }
-  .folio.tr { top: 16px; right: 20px; }
-  .folio.bl { bottom: 16px; left: 20px; }
-  .folio.br { bottom: 16px; right: 20px; }
-
-  /* wrap */
-  .wrap {
-    position: relative;
-    z-index: 2;
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: clamp(48px, 6vw, 96px) clamp(28px, 6vw, 80px) clamp(80px, 10vw, 160px);
-  }
-
-  /* ---------- MASTHEAD ---------- */
-  .mast-rules {
-    border-top: 3px solid var(--ink);
-    padding-top: 6px;
-    border-bottom: 1px solid var(--ink);
-    margin-bottom: 2px;
-  }
-  .mast-rules-2 { border-top: 1px solid var(--ink); height: 0; margin-top: 2px; }
-
-  .mast-meta {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-    padding: 10px 0;
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-fade);
-  }
-  .mast-meta .c { text-align: center; }
-  .mast-meta .r { text-align: right; }
-
-  .mast-title {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-style: italic;
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
-    font-size: clamp(72px, 18vw, 220px);
-    line-height: 0.86;
-    letter-spacing: -0.035em;
-    text-align: center;
-    padding: 18px 0 12px;
-    border-bottom: 1px solid var(--ink);
-    position: relative;
-  }
-  .mast-title::before,
-  .mast-title::after {
-    content: "✦";
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-style: normal;
-    font-weight: 400;
-    color: var(--ink);
+  .ui .brand {
     position: absolute;
+    top: clamp(18px, 3vw, 32px);
+    left: clamp(18px, 3vw, 32px);
+    display: flex; flex-direction: column; gap: 6px;
+    margin: 0;
+    font-weight: 400;
+  }
+  .ui .brand .t1 {
+    display: block;
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 85, "wght" 800;
+    font-size: clamp(28px, 4.5vw, 52px);
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    color: var(--bone);
+  }
+  .ui .brand .t1 em {
+    font-style: normal;
+    color: var(--flare);
+    font-variation-settings: "wdth" 100, "wght" 800;
+  }
+  .ui .brand .t2 {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+    margin-top: 4px;
+  }
+
+  .ui .corner-tr .idx {
+    text-align: right;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .ui .corner-tr .idx-t1 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--acid);
+  }
+  .ui .corner-tr .idx-t2 {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+  }
+
+  .ui .corner-tr {
+    position: absolute;
+    top: clamp(18px, 3vw, 32px);
+    right: clamp(18px, 3vw, 32px);
+    display: flex; gap: 10px; align-items: center;
+  }
+  .ui button {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--bone-dim);
+    color: var(--bone);
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    cursor: none;
+    transition: border-color 120ms, color 120ms, background 120ms;
+  }
+  .ui button:hover { border-color: var(--acid); color: var(--acid); }
+
+  /* bottom hint */
+  .hud {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: clamp(18px, 3vw, 32px);
+    display: flex; justify-content: center; gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--bone);
+    text-transform: uppercase;
+  }
+  .hud b { color: var(--acid); font-weight: 400; }
+  .hud .sep { color: #2A2631; }
+
+  /* vertical progress indicator on right edge */
+  .stack-indicator {
+    position: absolute;
+    right: clamp(24px, 4vw, 56px);
     top: 50%;
     transform: translateY(-50%);
-    font-variation-settings: "opsz" 48;
-  }
-  .mast-title::before { left: 0; }
-  .mast-title::after { right: 0; }
-
-  .mast-sub {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 20px;
-    padding: 12px 0 10px;
-    border-bottom: 3px solid var(--ink);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    display: flex; flex-direction: column; gap: 14px;
     align-items: center;
   }
-  .mast-sub .l { color: var(--ink-fade); }
-  .mast-sub .c {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-variation-settings: "opsz" 48, "SOFT" 100, "WONK" 1;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 14px;
-    color: var(--ink);
-    white-space: nowrap;
-  }
-  .mast-sub .r { text-align: right; color: var(--ink-fade); }
-
-  /* ---------- HERO ---------- */
-  .hero {
-    padding: 64px 0 48px;
+  .stack-indicator .line {
+    width: 1px; height: 110px;
+    background: linear-gradient(to bottom,
+      transparent, rgba(237,230,213,0.3) 20%,
+      rgba(237,230,213,0.3) 80%, transparent);
     position: relative;
   }
-  .watermark {
+  .stack-indicator .head {
     position: absolute;
-    top: 32%; left: 50%;
-    transform: translate(-50%, -50%) rotate(-18deg);
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: clamp(80px, 16vw, 220px);
-    letter-spacing: 0.08em;
-    color: var(--paper-deep);
-    z-index: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    opacity: 0.9;
-    user-select: none;
-    line-height: 1;
+    top: 0; left: 50%;
+    width: 14px; height: 2px;
+    background: var(--acid);
+    transform: translateX(-50%);
+    transition: top 180ms cubic-bezier(.2,.9,.3,1);
+    box-shadow: 0 0 12px var(--acid);
   }
-
-  .dateline {
-    position: relative;
-    z-index: 1;
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    color: var(--ink-fade);
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    display: flex; gap: 14px; align-items: center;
-  }
-  .dateline::before {
-    content: "";
-    display: inline-block; width: 36px; height: 1px; background: var(--ink);
-  }
-
-  .hed {
-    position: relative;
-    z-index: 1;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
-    font-size: clamp(40px, 8.2vw, 112px);
-    line-height: 0.95;
-    letter-spacing: -0.028em;
-    margin: 0 0 22px;
-    max-width: 16ch;
-  }
-  .hed em {
-    font-style: italic;
-    font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1;
-    color: var(--stamp-red);
-    background: transparent;
-  }
-
-  .dek {
-    position: relative;
-    z-index: 1;
-    font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.7;
-    max-width: 56ch;
-    color: var(--ink);
-  }
-  .dek b { color: var(--stamp-red); font-weight: 400; }
-
-  /* dinkus */
-  .dinkus {
-    text-align: center;
-    color: var(--ink-fade);
-    letter-spacing: 0.6em;
-    padding: 32px 0;
-    font-size: 12px;
-  }
-
-  /* section head */
-  .sect-head {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
-    align-items: end;
-    padding: 18px 0 10px;
-    border-top: 3px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
-    margin-bottom: 0;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-fade);
-  }
-  .sect-head h3 {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 900;
-    font-variation-settings: "opsz" 72, "SOFT" 30, "WONK" 1;
-    font-size: clamp(22px, 3.4vw, 34px);
-    letter-spacing: -0.01em;
-    text-transform: none;
-    color: var(--ink);
-    margin: 0;
-    line-height: 1;
-  }
-
-  /* ---------- DOCKET LIST ---------- */
-  .list { list-style: none; padding: 0; margin: 0; }
-  .row {
-    position: relative;
-    display: grid;
-    grid-template-columns: 44px 110px 1fr 260px;
-    align-items: center;
-    column-gap: 20px;
-    padding: 28px 0;
-    border-bottom: 1px solid var(--ink);
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    transition: background 140ms;
-  }
-  .row:hover { background: rgba(20,19,18,0.035); }
-  .row:focus-visible {
-    outline: none;
-    background: rgba(200,48,42,0.06);
-    box-shadow: inset 0 0 0 1px var(--stamp-red);
-  }
-
-  .row .num {
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    color: var(--ink-fade);
-    font-variant-numeric: tabular-nums;
-  }
-  .row .yr {
-    font-family: var(--font-display);
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 1;
-    font-weight: 900;
-    font-size: clamp(36px, 4.4vw, 52px);
-    letter-spacing: -0.025em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-  .row .name {
-    font-family: var(--font-mono);
-    font-size: 15px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    line-height: 1.3;
-  }
-  .row .name .host {
-    display: block;
-    font-size: 10.5px;
-    letter-spacing: 0.18em;
-    color: var(--ink-fade);
-    margin-top: 6px;
-    text-transform: uppercase;
-  }
-  .row .name .arrow {
-    display: inline-block;
-    margin-left: 10px;
-    opacity: 0;
-    transform: translateX(-6px);
-    transition: opacity 160ms, transform 160ms;
-    color: var(--stamp-red);
-  }
-  .row:hover .name .arrow { opacity: 1; transform: translateX(0); }
-  .row.stamped .name .arrow { opacity: 0.4; }
-  .row[data-href="#"] .name .arrow { content: "—"; }
-
-  /* stamp box */
-  .box {
-    position: relative;
-    width: 260px; height: 148px;
-    border: 1px solid var(--ink);
-    outline: 4px solid var(--paper);
-    outline-offset: -5px;
-    display: grid; place-items: center;
-    justify-self: end;
-    background:
-      linear-gradient(var(--paper), var(--paper)) padding-box,
-      repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 6px) border-box;
-  }
-  .box::before {
-    content: "STAMP HERE";
-    position: absolute;
-    top: 8px; left: 10px;
-    font-size: 8.5px;
-    letter-spacing: 0.24em;
-    color: var(--ink-fade);
-    font-family: var(--font-mono);
-  }
-  .box::after {
-    content: attr(data-ref);
-    position: absolute;
-    bottom: 6px; right: 10px;
-    font-size: 8.5px;
-    letter-spacing: 0.24em;
-    color: var(--ink-fade);
-    font-family: var(--font-mono);
-  }
-  .row.stamped .box::after { color: var(--stamp-red); }
-
-  /* hover preview */
-  .preview {
-    position: absolute;
-    inset: 12px;
-    display: grid; place-items: center;
-    opacity: 0;
-    transition: opacity 160ms ease-out;
-    pointer-events: none;
-  }
-  .row:hover:not(.stamped) .preview { opacity: 0.18; }
-  .preview svg { width: 100%; height: 100%; }
-
-  /* stamp */
-  .stamp {
-    position: absolute;
-    inset: 12px;
-    display: grid; place-items: center;
-    pointer-events: none;
-    opacity: 0;
-  }
-  .stamp svg {
-    width: 100%;
-    height: 100%;
-    transform-origin: 50% 50%;
-    will-change: transform, filter, opacity;
-  }
-  .row.stamped .stamp {
-    animation: slam 380ms cubic-bezier(.25, 1.2, .35, 1) forwards;
-  }
-  .row.stamped.hydrated .stamp {
-    animation: none;
-    opacity: 1;
-  }
-  @keyframes slam {
-    0%   { opacity: 0; transform: translateY(-140px) scale(2.2); filter: blur(3px); }
-    55%  { opacity: 1; transform: translateY(3px)   scale(0.94); filter: blur(0); }
-    72%  {             transform: translateY(-2px)  scale(1.025); }
-    100% { opacity: 1; transform: translateY(0)     scale(1);    filter: blur(0); }
-  }
-
-  /* impact flash */
-  .flash {
-    position: absolute; inset: 0;
-    background: rgba(255,255,255,0.55);
-    animation: flash 140ms ease-out forwards;
-    pointer-events: none;
-  }
-  @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
-
-  /* shake (applied to .wrap) */
-  .shake { animation: shake 140ms cubic-bezier(.36,.07,.19,.97); }
-  @keyframes shake {
-    0%, 100% { transform: translate(0,0); }
-    20% { transform: translate(0,2px); }
-    40% { transform: translate(-1.2px,-1px); }
-    60% { transform: translate(1.2px,0); }
-    80% { transform: translate(0,1px); }
-  }
-
-  /* ink splatter */
-  .splat {
-    position: fixed;
-    border-radius: 50%;
-    background: var(--stamp-red);
-    pointer-events: none;
-    z-index: 50;
-    animation: splat 680ms cubic-bezier(.2,1,.3,1) forwards;
-    transform-origin: center;
-  }
-  @keyframes splat {
-    0%   { transform: translate(0,0) scale(0);   opacity: 0; }
-    20%  { opacity: 1; }
-    100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
-  }
-
-  /* empty-state "unstamped" annotation on unvisited rows */
-  .row:not(.stamped) .box::before { content: "STAMP HERE ↓"; }
-
-  /* ---------- MARGINALIA ---------- */
-  .marginalia {
-    margin-top: 34px;
-    padding: 14px 0 0;
-    border-top: 1px solid var(--ink);
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 32px;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--ink-fade);
-    line-height: 1.7;
-  }
-  .marginalia h5 {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--ink);
-    font-weight: 400;
-    margin: 0 0 6px;
-  }
-  .marginalia p { margin: 0 0 4px; }
-
-  /* ---------- COLOPHON ---------- */
-  .colophon {
-    margin-top: 96px;
-    padding-top: 14px;
-    border-top: 3px solid var(--ink);
-  }
-  .colophon-title {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 900;
-    font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1;
-    font-size: clamp(48px, 9vw, 120px);
-    line-height: 0.9;
-    letter-spacing: -0.035em;
-    padding: 14px 0 20px;
-    border-bottom: 1px solid var(--ink);
-  }
-  .colophon-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    padding: 28px 0;
-    border-bottom: 1px solid var(--ink);
-  }
-  .colophon-grid h6 {
+  .stack-indicator .dots {
+    display: flex; flex-direction: column; gap: 28px;
+    margin-top: 8px;
     font-family: var(--font-mono);
     font-size: 10.5px;
     letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-fade);
-    margin: 0 0 8px;
-    font-weight: 400;
+    color: var(--bone-dim);
+    align-items: flex-end;
   }
-  .colophon-grid p {
-    font-family: var(--font-display);
-    font-size: 18px;
-    line-height: 1.35;
-    margin: 0;
-    font-variation-settings: "opsz" 36, "SOFT" 20, "WONK" 0;
-  }
-  .colophon-grid a {
-    color: var(--stamp-red);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-  }
+  .stack-indicator .dots span { transition: color 120ms, opacity 120ms; }
+  .stack-indicator .dots span.active { color: var(--acid); }
+  .stack-indicator .dots span.about { color: var(--plasma); opacity: 0.55; }
+  .stack-indicator .dots span.about.active { color: var(--plasma); opacity: 1; }
 
-  .end-rule {
-    padding: 34px 0 0;
+  /* centered primary hint */
+  .hint-center {
+    position: fixed;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
     text-align: center;
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+  .hint-center.show { opacity: 0.92; }
+  .hint-center .h1 {
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 85, "wght" 700;
+    font-size: clamp(26px, 4vw, 44px);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+  .hint-center .h1 em {
+    font-style: normal;
+    color: var(--acid);
+    font-variation-settings: "wdth" 100, "wght" 700;
+  }
+  .hint-center .h2 {
     font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.32em;
-    color: var(--ink-fade);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--bone-dim);
     text-transform: uppercase;
   }
-  .end-rule .stamp-mark { color: var(--stamp-red); }
+  .hint-center .bounce-y {
+    margin-top: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--acid);
+    animation: bob 2s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(-4px); opacity: 0.4; }
+    50% { transform: translateY(4px); opacity: 1; }
+  }
+  .hint-center .bounce-y svg { width: 18px; height: 36px; }
 
-  /* reduced motion */
+  /* click ripple */
+  .ripple {
+    position: fixed;
+    width: 18px; height: 18px;
+    border: 1px solid var(--acid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 198;
+    transform: translate(-50%, -50%);
+    animation: ripple 420ms ease-out forwards;
+  }
+  @keyframes ripple {
+    0%   { opacity: 0.9; width: 8px;  height: 8px;  border-width: 2px; }
+    100% { opacity: 0;   width: 80px; height: 80px; border-width: 0.5px; }
+  }
+
+  /* boot */
+  #boot {
+    position: fixed; inset: 0;
+    z-index: 100;
+    background: var(--pitch);
+    display: grid; place-items: center;
+    transition: opacity 500ms ease, visibility 500ms;
+  }
+  #boot.done { opacity: 0; visibility: hidden; }
+  #boot .t {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--bone-dim);
+    text-transform: uppercase;
+  }
+  #boot .t::after {
+    content: "...";
+    display: inline-block;
+    animation: ellip 1.2s steps(4) infinite;
+    width: 16px; text-align: left;
+  }
+  @keyframes ellip {
+    0% { content: "."; } 33% { content: ".."; } 66% { content: "..."; } 100% { content: "."; }
+  }
+
+  /* custom cursor */
+  #cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 28px; height: 28px;
+    pointer-events: none;
+    z-index: 200;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: screen;
+    will-change: transform;
+  }
+  #cursor svg { width: 100%; height: 100%; display: block; }
+  #cursor .ring  { stroke: var(--acid); fill: none; stroke-width: 1.4; transition: all 150ms ease; }
+  #cursor .cross { stroke: var(--acid); stroke-width: 1.2; transition: opacity 150ms, transform 150ms; transform-origin: center; }
+  #cursor.hover .ring { r: 13; fill: rgba(216,255,0,0.1); }
+  #cursor.hover .cross { opacity: 0; }
+  #cursor.grab  .ring { r: 9; fill: var(--acid); stroke: var(--acid); }
+  #cursor.grab  .cross { stroke: var(--pitch); transform: scale(0.5); opacity: 1; }
+
+  #cursor-trail { position: fixed; inset: 0; z-index: 199; pointer-events: none; mix-blend-mode: screen; }
+
+  @media (max-width: 760px) {
+    .stack-indicator { right: 14px; }
+    .stack-indicator .line { height: 76px; }
+    .stack-indicator .dots { gap: 20px; font-size: 9.5px; }
+    .hud { font-size: 9.5px; gap: 12px; padding: 0 16px; text-align: center; flex-wrap: wrap; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .row.stamped .stamp { animation: fadeIn 220ms ease-out forwards; }
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    .shake, .splat { animation: none; }
-    .splat { display: none; }
-    html { scroll-behavior: auto; }
-  }
-
-  /* responsive */
-  @media (max-width: 860px) {
-    .mast-title { font-size: clamp(56px, 16vw, 120px); }
-    .mast-title::before, .mast-title::after { font-size: 16px; }
-    .hed { font-size: clamp(36px, 10vw, 72px); max-width: none; }
-    .row {
-      grid-template-columns: 36px 82px 1fr;
-      grid-template-rows: auto auto;
-      row-gap: 18px;
-    }
-    .row .num { grid-column: 1; grid-row: 1; }
-    .row .yr  { grid-column: 2; grid-row: 1; }
-    .row .name{ grid-column: 3; grid-row: 1; }
-    .box {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      justify-self: stretch;
-      width: 100%;
-      height: 140px;
-    }
-    .mast-sub { grid-template-columns: 1fr; gap: 4px; text-align: left; }
-    .mast-sub .r, .mast-sub .c { text-align: left; }
-    .marginalia { grid-template-columns: 1fr; gap: 16px; }
-    .colophon-grid { grid-template-columns: 1fr 1fr; }
-    .folio { display: none; }
-  }
-  @media (max-width: 480px) {
-    .colophon-grid { grid-template-columns: 1fr; }
-    .watermark { font-size: 64px; }
+    .hint-center .bounce-y { animation: none; }
+    .stack-indicator .head { transition: none; }
   }
 </style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 </head>
+
 <body>
 
-<!-- folio markers (fixed) -->
-<div class="folio tl">01 / 01</div>
-<div class="folio tr">pers. ed.</div>
-<div class="folio bl">— contd.</div>
-<div class="folio br">filed · mmxxvi</div>
+<div id="boot"><div class="t">composing the stack</div></div>
 
-<main class="wrap" id="sheet">
+<canvas id="scene"></canvas>
+<canvas id="cursor-trail"></canvas>
 
-  <!-- ========== MASTHEAD ========== -->
-  <header class="mast-rules">
-    <div class="mast-rules-2"></div>
+<div id="cursor">
+  <svg viewBox="0 0 28 28">
+    <circle class="ring" cx="14" cy="14" r="10"/>
+    <g class="cross">
+      <line x1="14" y1="4"  x2="14" y2="10"/>
+      <line x1="14" y1="18" x2="14" y2="24"/>
+      <line x1="4"  y1="14" x2="10" y2="14"/>
+      <line x1="18" y1="14" x2="24" y2="14"/>
+    </g>
+  </svg>
+</div>
 
-    <div class="mast-meta">
-      <div class="l">Vol. I · N° 01</div>
-      <div class="c">— Personal Edition · Circulation: One —</div>
-      <div class="r">21 · IV · MMXXVI</div>
+<div class="ui">
+  <h1 class="brand">
+    <span class="t1">Hackathons<em>.</em></span>
+    <span class="t2">by Alexandre Tsetskhladze</span>
+  </h1>
+
+  <div class="corner-tr">
+    <div class="idx">
+      <span class="idx-t1">03 Hackathons</span>
+      <span class="idx-t2">+ a hello at the end</span>
     </div>
+  </div>
 
-    <h1 class="mast-title">The&nbsp;Docket</h1>
+  <div class="hud">
+    <span><b>click + drag</b> up · down</span>
+    <span class="sep">/</span>
+    <span>tap a card to jump</span>
+    <span class="sep">/</span>
+    <span>click the front card to open</span>
+  </div>
 
-    <div class="mast-sub">
-      <div class="l">Est. MMXXV · Tbilisi</div>
-      <div class="c">of Alexandre Tsetskhladze's hackathon attendances</div>
-      <div class="r">printed on cream · set in lead</div>
+  <div class="stack-indicator" aria-hidden="true">
+    <div class="line"><div class="head" id="stackHead"></div></div>
+    <div class="dots">
+      <span data-i="0" class="active">2026</span>
+      <span data-i="1">2025</span>
+      <span data-i="2">2025</span>
+      <span data-i="3" class="about">HI</span>
     </div>
-  </header>
+  </div>
+</div>
 
-  <!-- ========== HERO ========== -->
-  <section class="hero">
-    <div class="watermark" aria-hidden="true">FILED · MMXXVI</div>
+<div class="hint-center" id="hintCenter">
+  <div class="h1"><em>Grab</em> the stack</div>
+  <div class="h2">click &amp; drag · up · or · down</div>
+  <div class="bounce-y">
+    <svg viewBox="0 0 18 36" fill="none">
+      <path d="M9 3 L9 33 M3 9 L9 3 L15 9 M3 27 L9 33 L15 27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</div>
 
-    <div class="dateline">Tbilisi — 21 April MMXXVI · Ed. Note</div>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer }   from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }       from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }  from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass }       from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass }       from 'three/addons/postprocessing/OutputPass.js';
 
-    <h2 class="hed">The one where every hackathon gets a <em>rubber-stamped</em> admission.</h2>
+// ----- palette -----
+const C = {
+  pitch:  '#08080D',
+  lift:   '#13131A',
+  bone:   '#EDE6D5',
+  boneDim:'#8C877B',
+  flare:  '#FF2A1A',
+  flareDim:'#8F1A11',
+  acid:   '#D8FF00',
+  plasma: '#6A2EFF',
+};
 
-    <p class="dek">
-      Below is the standing ledger. Click a row — a stamp slams into the box and the event page opens. Rows you have stamped stay <b>inked</b> on return: the paper remembers. No login, no telemetry, no cards, no chrome. One sheet, one press, one verb per entry.
-    </p>
-  </section>
+// ----- content -----
+const ENTRIES = [
+  {
+    year: '2026',
+    name: 'ETHGLOBAL',
+    name2:'CANNES',
+    meta: 'CÔTE D’AZUR · JUILLET',
+    num:  'N° 2026·01',
+    href: 'https://ethglobal.com/events/cannes',
+    tone: 'flare',
+    project: 'Oh Snap!',
+    achievements: ['FINALIST', 'METAMASK WINNER'],
+  },
+  {
+    year: '2025',
+    name: '[PLACEHOLDER]',
+    name2:'ENTRY · 02',
+    meta: 'LOCATION & HOST TBC',
+    num:  'N° 2025·02',
+    href: '#',
+    tone: 'bone',
+    project: null,
+    achievements: [],
+  },
+  {
+    year: '2025',
+    name: '[PLACEHOLDER]',
+    name2:'ENTRY · 03',
+    meta: 'LOCATION & HOST TBC',
+    num:  'N° 2025·03',
+    href: '#',
+    tone: 'acid',
+    project: null,
+    achievements: [],
+  },
+  {
+    type: 'about',
+    year: '—',
+    name: 'ALEXANDRE',
+    name2:'TSETSKHLADZE',
+    meta: 'BUILDER · TBILISI',
+    num:  '— THE PERSON —',
+    href: 'mailto:atsetsoffc@gmail.com',
+    tone: 'plasma',
+    project: 'Build. Win. Ship.',
+    achievements: ['GITHUB  @handle', 'TWITTER @handle', 'MAIL →  inbox'],
+  },
+];
 
-  <div class="dinkus" aria-hidden="true">·   ·   ·</div>
+// ----- wait for fonts -----
+await document.fonts.ready;
+await Promise.all([
+  document.fonts.load('800 380px "Bricolage Grotesque"'),
+  document.fonts.load('700 84px  "Bricolage Grotesque"'),
+  document.fonts.load('italic 700 58px "Bricolage Grotesque"'),
+  document.fonts.load('500 24px  "Azeret Mono"'),
+  document.fonts.load('700 32px  "Azeret Mono"'),
+]).catch(() => {});
 
-  <!-- ========== DOCKET LIST ========== -->
-  <section>
-    <div class="sect-head">
-      <span>§ I</span>
-      <h3>The Ledger of Admissions</h3>
-      <span id="entryCount">entries : 3</span>
-    </div>
+// ----- poster face texture -----
+function makePosterTexture(entry) {
+  const W = 1024, H = 1536;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
 
-    <ul class="list" id="list">
-
-      <li class="row"
-          data-id="2026-ethglobal-cannes"
-          data-href="https://ethglobal.com/events/cannes"
-          data-label="ADMITTED"
-          data-ref="N° 2026·01"
-          data-rot="-7"
-          role="link"
-          tabindex="0"
-          aria-label="ETHGlobal Cannes, 2026 — stamp to enter">
-        <span class="num">01</span>
-        <span class="yr">2026</span>
-        <span class="name">
-          ETHGlobal · Cannes<span class="arrow">↗</span>
-          <span class="host">Côte d'Azur · Ethereum Global</span>
-        </span>
-        <span class="box" data-ref="N° 2026·01" aria-hidden="true">
-          <span class="preview"></span>
-          <span class="stamp"></span>
-        </span>
-      </li>
-
-      <li class="row"
-          data-id="2025-placeholder-a"
-          data-href="#"
-          data-label="PROCESSED"
-          data-ref="N° 2025·02"
-          data-rot="4"
-          role="link"
-          tabindex="0"
-          aria-label="Placeholder entry A, 2025 — stamp to enter">
-        <span class="num">02</span>
-        <span class="yr">2025</span>
-        <span class="name">
-          [ placeholder entry ]<span class="arrow">↗</span>
-          <span class="host">location &amp; host pending</span>
-        </span>
-        <span class="box" data-ref="N° 2025·02" aria-hidden="true">
-          <span class="preview"></span>
-          <span class="stamp"></span>
-        </span>
-      </li>
-
-      <li class="row"
-          data-id="2025-placeholder-b"
-          data-href="#"
-          data-label="VERIFIED"
-          data-ref="N° 2025·03"
-          data-rot="-10"
-          role="link"
-          tabindex="0"
-          aria-label="Placeholder entry B, 2025 — stamp to enter">
-        <span class="num">03</span>
-        <span class="yr">2025</span>
-        <span class="name">
-          [ placeholder entry ]<span class="arrow">↗</span>
-          <span class="host">location &amp; host pending</span>
-        </span>
-        <span class="box" data-ref="N° 2025·03" aria-hidden="true">
-          <span class="preview"></span>
-          <span class="stamp"></span>
-        </span>
-      </li>
-
-    </ul>
-
-    <!-- marginalia -->
-    <aside class="marginalia">
-      <div>
-        <h5>On the Stamp</h5>
-        <p>Red process ink, one-pass. Rubber die hand-set. Rotation is uncontrolled — as it should be.</p>
-      </div>
-      <div>
-        <h5>On Entries</h5>
-        <p>The ledger grows one admission at a time. Placeholders remain until their host's own records post.</p>
-      </div>
-      <div>
-        <h5>On Format</h5>
-        <p>One sheet. Printed landscape of record. No archives beyond what you see; no overleaf.</p>
-      </div>
-    </aside>
-  </section>
-
-  <!-- ========== COLOPHON ========== -->
-  <section class="colophon">
-    <div class="sect-head">
-      <span>§ II</span>
-      <h3>Colophon</h3>
-      <span>— fin —</span>
-    </div>
-
-    <div class="colophon-title">Typeset &amp; Pressed<br>in <em style="font-variation-settings:'opsz' 144,'SOFT' 100,'WONK' 1">Tbilisi.</em></div>
-
-    <div class="colophon-grid">
-      <div>
-        <h6>Set in</h6>
-        <p>Fraunces<br>&amp; Departure Mono</p>
-      </div>
-      <div>
-        <h6>Printed on</h6>
-        <p>Cream newsprint<br>52 gsm, uncoated</p>
-      </div>
-      <div>
-        <h6>Ink</h6>
-        <p>Pantone 185C<br>one-pass · unevenly</p>
-      </div>
-      <div>
-        <h6>Editor</h6>
-        <p>Alexandre<br>Tsetskhladze</p>
-      </div>
-    </div>
-
-    <div class="end-rule">— end of docket <span class="stamp-mark">·</span> no overleaf <span class="stamp-mark">·</span> continued when entered —</div>
-  </section>
-
-</main>
-
-<!-- ========== STAMP LOGIC ========== -->
-<script>
-(() => {
-  const rows  = document.querySelectorAll('.row');
-  const sheet = document.getElementById('sheet');
-
-  const STORAGE_KEY = 'docket.stamped.v1';
-  const loadSaved = () => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-    catch { return {}; }
+  // base fill by tone
+  const tones = {
+    flare:  { bg: '#0E0B14', accent: C.flare,  type: C.bone,    sub: '#FF7A6E' },
+    bone:   { bg: C.bone,    accent: C.flare,  type: '#07060B', sub: '#141018' },
+    acid:   { bg: '#0B0B0D', accent: C.acid,   type: C.bone,    sub: '#FFD13D' },
+    plasma: { bg: '#0B0817', accent: C.plasma, type: C.bone,    sub: '#9C7CFF' },
   };
-  const saveStamped = (id, data) => {
-    const all = loadSaved();
-    all[id] = data;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); } catch {}
-  };
+  const t = tones[entry.tone];
 
-  let seedCounter = 11;
+  g.fillStyle = t.bg;
+  g.fillRect(0, 0, W, H);
 
-  function stampSVG(label, ref, seed, rot) {
-    const RED = '#C8302A';
-    const asterisk = (cx, cy) => `
-      <g stroke="${RED}" stroke-width="1.4" stroke-linecap="round">
-        <line x1="${cx-5}" y1="${cy}"   x2="${cx+5}" y2="${cy}"/>
-        <line x1="${cx}"   y1="${cy-5}" x2="${cx}"   y2="${cy+5}"/>
-        <line x1="${cx-4}" y1="${cy-4}" x2="${cx+4}" y2="${cy+4}"/>
-        <line x1="${cx-4}" y1="${cy+4}" x2="${cx+4}" y2="${cy-4}"/>
-      </g>`;
-
-    return `
-      <svg viewBox="0 0 260 140" preserveAspectRatio="xMidYMid meet" style="transform:rotate(${rot}deg)">
-        <defs>
-          <filter id="ink-${seed}" x="-10%" y="-14%" width="120%" height="128%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.14" numOctaves="2" seed="${seed}" result="edgeN"/>
-            <feDisplacementMap in="SourceGraphic" in2="edgeN" scale="2.2" result="displaced"/>
-            <feTurbulence type="fractalNoise" baseFrequency="0.045 0.06" numOctaves="1" seed="${seed+3}" result="splotch"/>
-            <feColorMatrix in="splotch" values="0 0 0 0 0
-                                                0 0 0 0 0
-                                                0 0 0 0 0
-                                                0 0 0 4.6 -1.8" result="splotchMask"/>
-            <feComposite in="displaced" in2="splotchMask" operator="out" result="masked"/>
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${seed+7}" result="grain"/>
-            <feColorMatrix in="grain" values="0 0 0 0 0
-                                              0 0 0 0 0
-                                              0 0 0 0 0
-                                              0 0 0 1.3 -0.25" result="grainMask"/>
-            <feComposite in="masked" in2="grainMask" operator="out"/>
-          </filter>
-        </defs>
-        <g filter="url(#ink-${seed})" fill="${RED}" stroke="${RED}">
-          <rect x="5"  y="5"  width="250" height="130" fill="none" stroke-width="4"/>
-          <rect x="13" y="13" width="234" height="114" fill="none" stroke-width="1"/>
-          ${asterisk(26,26)} ${asterisk(234,26)} ${asterisk(26,114)} ${asterisk(234,114)}
-          <text x="130" y="70" text-anchor="middle"
-                font-family="Fraunces, serif" font-weight="900" font-size="38"
-                font-style="italic" letter-spacing="2"
-                style="font-variation-settings:'opsz' 144,'SOFT' 0,'WONK' 1">${label}</text>
-          <line x1="40" y1="84" x2="220" y2="84" stroke-width="1" stroke-dasharray="3 4"/>
-          <text x="130" y="102" text-anchor="middle"
-                font-family="'Departure Mono','Courier Prime',monospace"
-                font-size="9.5" letter-spacing="1.8">${ref}</text>
-          <text x="130" y="118" text-anchor="middle"
-                font-family="'Departure Mono','Courier Prime',monospace"
-                font-size="7.5" letter-spacing="2.4" opacity="0.85">·   ·   ·</text>
-        </g>
-      </svg>`;
+  // paper grain
+  const ng = g.createRadialGradient(W*0.3, H*0.2, 50, W/2, H/2, Math.max(W,H));
+  ng.addColorStop(0, 'rgba(255,255,255,0.03)');
+  ng.addColorStop(1, 'rgba(0,0,0,0.12)');
+  g.fillStyle = ng;
+  g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 3800; i++) {
+    const a = Math.random();
+    g.fillStyle = `rgba(${entry.tone==='bone'?0:255},${entry.tone==='bone'?0:255},${entry.tone==='bone'?0:255},${a*0.025})`;
+    g.fillRect(Math.random()*W, Math.random()*H, 1, 1);
   }
 
-  function burstSplatter(x, y) {
-    const N = 8;
-    for (let i = 0; i < N; i++) {
-      const p = document.createElement('span');
-      p.className = 'splat';
-      const ang  = (Math.PI * 2 * i) / N + (Math.random() - 0.5) * 0.6;
-      const dist = 24 + Math.random() * 44;
-      const sz   = 2 + Math.random() * 4;
-      p.style.width  = sz + 'px';
-      p.style.height = sz + 'px';
-      p.style.left   = (x - sz/2) + 'px';
-      p.style.top    = (y - sz/2) + 'px';
-      p.style.setProperty('--tx', (Math.cos(ang) * dist).toFixed(1) + 'px');
-      p.style.setProperty('--ty', (Math.sin(ang) * dist).toFixed(1) + 'px');
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 720);
+  // ======== motif ========
+  g.save();
+  if (entry.tone === 'flare') {
+    // diagonal stripes
+    g.strokeStyle = t.accent;
+    g.globalAlpha = 0.09;
+    g.lineWidth = 40;
+    for (let x = -H; x < W + H; x += 64) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x + H, H); g.stroke();
     }
-  }
-
-  function stampRow(row, { hydrate = false } = {}) {
-    const label = row.dataset.label;
-    const ref   = row.dataset.ref;
-    const rot   = +row.dataset.rot || -7;
-    const href  = row.dataset.href;
-    const id    = row.dataset.id;
-
-    if (!row.classList.contains('stamped')) {
-      const seed = ++seedCounter;
-      const svg  = stampSVG(label, ref, seed, rot);
-
-      row.querySelector('.stamp').innerHTML   = svg;
-      row.querySelector('.preview').innerHTML = svg;
-
-      if (hydrate) {
-        row.classList.add('stamped', 'hydrated');
-      } else {
-        row.classList.add('stamped');
-        saveStamped(id, { label, ref, rot, seed });
-
-        // impact
-        const box = row.querySelector('.box');
-        const rect = box.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top  + rect.height / 2;
-
-        sheet.classList.remove('shake');
-        void sheet.offsetWidth;
-        sheet.classList.add('shake');
-        setTimeout(() => sheet.classList.remove('shake'), 160);
-
-        setTimeout(() => burstSplatter(cx, cy), 190);
-
-        const flash = document.createElement('span');
-        flash.className = 'flash';
-        box.appendChild(flash);
-        setTimeout(() => flash.remove(), 160);
+  } else if (entry.tone === 'bone') {
+    // concentric arcs, bottom-right
+    g.strokeStyle = t.accent;
+    g.globalAlpha = 0.14;
+    for (let r = 40; r <= 900; r += 70) {
+      g.lineWidth = r % 140 === 0 ? 2 : 1;
+      g.beginPath(); g.arc(W, H, r, Math.PI, Math.PI * 1.5); g.stroke();
+    }
+  } else if (entry.tone === 'acid') {
+    // halftone dot grid
+    g.globalAlpha = 0.18;
+    g.fillStyle = t.accent;
+    const step = 28;
+    for (let y = 60; y < H; y += step) {
+      for (let x = 60; x < W; x += step) {
+        const d = Math.hypot(x - W*0.3, y - H*0.7) / Math.hypot(W, H);
+        const r = Math.max(0, 4 * (1 - d * 1.2));
+        if (r > 0.3) { g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill(); }
       }
     }
-
-    // open link (user-gesture tick) — even on re-click
-    if (!hydrate && href && href !== '#') {
-      window.open(href, '_blank', 'noopener,noreferrer');
+  } else if (entry.tone === 'plasma') {
+    // starfield — scattered plasma dots of varying sizes + a few larger "stars" with cross-spark
+    const rand = (seed) => {
+      let s = seed; return () => { s = (s*9301 + 49297) % 233280; return s / 233280; };
+    };
+    const r1 = rand(7);
+    g.fillStyle = t.accent;
+    for (let i = 0; i < 260; i++) {
+      const x = r1() * W, y = r1() * H;
+      const rr = r1();
+      const sz = rr < 0.85 ? 0.8 + rr * 1.2 : 1.6 + rr * 4;
+      g.globalAlpha = 0.15 + rr * 0.55;
+      g.beginPath(); g.arc(x, y, sz, 0, Math.PI*2); g.fill();
     }
+    // a few "bright" stars with cross sparks
+    for (let i = 0; i < 6; i++) {
+      const x = 120 + r1() * (W - 240);
+      const y = 320 + r1() * (H - 520);
+      g.globalAlpha = 0.9;
+      g.fillStyle = t.accent;
+      g.beginPath(); g.arc(x, y, 3.5, 0, Math.PI*2); g.fill();
+      g.strokeStyle = t.accent;
+      g.lineWidth = 1;
+      g.globalAlpha = 0.55;
+      g.beginPath();
+      g.moveTo(x - 14, y); g.lineTo(x + 14, y);
+      g.moveTo(x, y - 14); g.lineTo(x, y + 14);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  g.restore();
+
+  // ======== border frame ========
+  g.strokeStyle = t.type;
+  g.globalAlpha = 0.25;
+  g.lineWidth = 2;
+  g.strokeRect(32, 32, W - 64, H - 64);
+  g.globalAlpha = 1;
+
+  // ======== header row ========
+  g.fillStyle = t.type;
+  g.font = '500 22px "Azeret Mono", monospace';
+  g.textBaseline = 'top';
+  g.textAlign = 'left';
+  g.fillText('ALEXANDRE TSETSKHLADZE', 64, 276);
+  g.textAlign = 'right';
+  g.fillText(entry.num, W - 64, 276);
+
+  // hairline under header
+  g.lineWidth = 1;
+  g.globalAlpha = 0.25;
+  g.beginPath(); g.moveTo(64, 322); g.lineTo(W - 64, 322); g.stroke();
+  g.globalAlpha = 1;
+
+  // ======== YEAR (or HELLO for about) ========
+  if (entry.type === 'about') {
+    // italic lowercase "Hello." with plasma period
+    g.font = 'italic 800 300px "Bricolage Grotesque", sans-serif';
+    g.textAlign = 'left';
+    g.textBaseline = 'alphabetic';
+    const hello = 'Hello';
+    const dot = '.';
+    const helloW = g.measureText(hello).width;
+    const dotW   = g.measureText(dot).width;
+    const totalW = helloW + dotW;
+    const startX = W/2 - totalW/2;
+    g.fillStyle = t.type;
+    g.fillText(hello, startX, 640);
+    g.fillStyle = t.accent;
+    g.fillText(dot, startX + helloW, 640);
+  } else {
+    g.fillStyle = t.accent;
+    g.font = '800 380px "Bricolage Grotesque", sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'alphabetic';
+    g.fillText(entry.year, W/2, 660);
+    g.globalAlpha = 0.16;
+    g.fillText(entry.year, W/2 + 8, 668);
+    g.globalAlpha = 1;
   }
 
-  // hydrate previously-stamped rows
-  const saved = loadSaved();
-  rows.forEach((row) => {
-    const id = row.dataset.id;
-    if (saved[id]) {
-      stampRow(row, { hydrate: true });
-    }
-  });
+  // ======== hackathon name ========
+  g.fillStyle = t.type;
+  g.font = '700 84px "Bricolage Grotesque", sans-serif';
+  g.textAlign = 'left';
+  g.textBaseline = 'alphabetic';
+  g.fillText(entry.name,  80, 790);
+  g.fillText(entry.name2, 80, 882);
 
-  rows.forEach((row) => {
-    row.addEventListener('click', () => stampRow(row));
-    row.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        stampRow(row);
-      }
+  // meta
+  g.fillStyle = t.type;
+  g.globalAlpha = 0.55;
+  g.font = '500 24px "Azeret Mono", monospace';
+  g.fillText(entry.meta, 80, 928);
+  g.globalAlpha = 1;
+
+  // ----- hairline -----
+  g.strokeStyle = t.type;
+  g.globalAlpha = 0.22;
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(80, 972); g.lineTo(W - 80, 972); g.stroke();
+  g.globalAlpha = 1;
+
+  // ======== PROJECT / TAGLINE ========
+  g.fillStyle = t.type;
+  g.globalAlpha = 0.5;
+  g.font = '500 19px "Azeret Mono", monospace';
+  g.textBaseline = 'alphabetic';
+  g.textAlign = 'left';
+  g.fillText(entry.type === 'about' ? 'TAGLINE —' : 'PROJECT —', 80, 1004);
+  g.globalAlpha = 1;
+
+  if (entry.project) {
+    g.fillStyle = t.type;
+    g.font = 'italic 700 58px "Bricolage Grotesque", sans-serif';
+    g.fillText(entry.project, 80, 1068);
+  } else {
+    g.fillStyle = t.type;
+    g.globalAlpha = 0.28;
+    g.font = '500 34px "Azeret Mono", monospace';
+    g.fillText('—', 80, 1062);
+    g.globalAlpha = 1;
+  }
+
+  // ----- hairline -----
+  g.globalAlpha = 0.22;
+  g.beginPath(); g.moveTo(80, 1108); g.lineTo(W - 80, 1108); g.stroke();
+  g.globalAlpha = 1;
+
+  // ======== AWARDS / REACH ========
+  g.fillStyle = t.type;
+  g.globalAlpha = 0.5;
+  g.font = '500 19px "Azeret Mono", monospace';
+  g.fillText(entry.type === 'about' ? 'REACH —' : 'AWARDS —', 80, 1140);
+  g.globalAlpha = 1;
+
+  if (entry.achievements.length > 0) {
+    entry.achievements.forEach((award, i) => {
+      const y = 1192 + i * 54;
+      // accent diamond marker
+      g.fillStyle = t.accent;
+      g.beginPath();
+      g.moveTo(92, y - 14);
+      g.lineTo(108, y - 24);
+      g.lineTo(124, y - 14);
+      g.lineTo(108, y - 4);
+      g.closePath();
+      g.fill();
+      // award text
+      g.fillStyle = t.type;
+      g.font = '700 32px "Azeret Mono", monospace';
+      g.textBaseline = 'alphabetic';
+      g.fillText(award, 144, y - 5);
     });
+  } else {
+    g.fillStyle = t.type;
+    g.globalAlpha = 0.28;
+    g.font = '500 32px "Azeret Mono", monospace';
+    g.fillText('—', 80, 1200);
+    g.globalAlpha = 1;
+  }
+
+  // CTA (acid pill)
+  const ctaY = 1372, ctaH = 92;
+  g.fillStyle = t.accent;
+  g.fillRect(80, ctaY, W - 160, ctaH);
+
+  g.fillStyle = entry.tone === 'bone' ? C.bone : C.pitch;
+  g.font = '700 44px "Bricolage Grotesque", sans-serif';
+  g.textBaseline = 'middle';
+  g.textAlign = 'center';
+  const ctaLabel = entry.type === 'about'
+    ? 'SAY HELLO  →'
+    : entry.href === '#' ? '[ PENDING ]' : 'ENTER  →';
+  g.fillText(ctaLabel, W/2, ctaY + ctaH/2 + 2);
+
+  // ======== back-of-poster preview strip (top 100px is the "back") ========
+  // redraw a narrow strip at very top as the "reverse" — bone-on-pitch with just the year quietly.
+  // This is the tiny sliver visible when poster is receded in stack.
+  g.save();
+  const STRIP = 240;
+  g.fillStyle = entry.tone === 'bone' ? '#EDE6D5' : '#0D0B12';
+  g.fillRect(0, 0, W, STRIP);
+  // grain
+  for (let i = 0; i < 1800; i++) {
+    const aa = Math.random()*0.03;
+    g.fillStyle = `rgba(${entry.tone==='bone'?0:255},${entry.tone==='bone'?0:255},${entry.tone==='bone'?0:255},${aa})`;
+    g.fillRect(Math.random()*W, Math.random()*STRIP, 1, 1);
+  }
+  // hairline bottom of strip
+  g.strokeStyle = entry.tone === 'bone' ? '#141018' : '#2A2631';
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, STRIP - 0.5); g.lineTo(W, STRIP - 0.5); g.stroke();
+  // quiet year on the back strip
+  g.fillStyle = entry.tone === 'bone' ? '#141018' : '#4A4450';
+  g.font = '500 48px "Azeret Mono", monospace';
+  g.textAlign = 'left'; g.textBaseline = 'middle';
+  g.fillText(entry.type === 'about' ? '— HELLO · ALEXANDRE' : '— VERSO · ' + entry.year, 64, STRIP/2);
+  // markers
+  g.textAlign = 'right';
+  g.fillText(entry.num, W - 64, STRIP/2);
+  g.restore();
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 16;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+// ----- three setup -----
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(C.pitch);
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 50);
+camera.position.set(0, 0.1, 5.3);
+camera.lookAt(0, 0.1, 0);
+
+// subtle radial vignette-inverse via a large plane behind stack (barely visible)
+{
+  const glowTex = (() => {
+    const s = 512;
+    const c = document.createElement('canvas'); c.width = c.height = s;
+    const gg = c.getContext('2d');
+    const rg = gg.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+    rg.addColorStop(0, 'rgba(106,46,255,0.12)');
+    rg.addColorStop(0.4, 'rgba(106,46,255,0.04)');
+    rg.addColorStop(1, 'rgba(8,8,13,0)');
+    gg.fillStyle = rg; gg.fillRect(0,0,s,s);
+    const t = new THREE.CanvasTexture(c); return t;
+  })();
+  const glowMat = new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false });
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), glowMat);
+  glow.position.z = -2;
+  scene.add(glow);
+}
+
+// ----- build posters -----
+const POSTER_W = 1.45, POSTER_H = POSTER_W * 1.5; // 2:3 aspect (1.45 × 2.175)
+const geom = new THREE.PlaneGeometry(POSTER_W, POSTER_H, 1, 1);
+
+const posters = ENTRIES.map((entry, i) => {
+  const tex = makePosterTexture(entry);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 1, depthWrite: false,
   });
-})();
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.renderOrder = 100 - i; // draw lower indices on top initially
+  scene.add(mesh);
+  return { entry, mesh, mat, i };
+});
+
+// ----- pointer + state -----
+const cursorEl   = document.getElementById('cursor');
+const hintCenter = document.getElementById('hintCenter');
+const stackHead  = document.getElementById('stackHead');
+const stackDots  = Array.from(document.querySelectorAll('.stack-indicator .dots span'));
+
+let targetMouseY = 0;   // scrub target in [0,1] — driven by drag, not cursor
+let mouseY       = 0;   // lerped toward targetMouseY
+let interacted   = false;
+
+// drag state
+let isDragging        = false;
+let dragPointerId     = null;
+let dragStartClientY  = 0;
+let dragStartScrub    = 0;
+let dragMoved         = false;
+let downAt            = 0;
+let downScreen        = { x: 0, y: 0 };
+let downPosterIndex   = -1;
+const DRAG_PX_PER_CARD = 260;        // how many px of drag = 1 card
+const CLICK_MAX_PX     = 7;
+const CLICK_MAX_MS     = 360;
+
+const N = posters.length;
+
+// ----- compute transform state by offset from active -----
+// offset > 0: poster is BELOW/BEHIND active in stack (peeking from rear)
+// offset = 0: active (front-center)
+// offset < 0: poster is ABOVE/PAST active (rising up & out)
+function stateForOffset(o) {
+  const s = { x:0, y:0, z:0, rotX:0, scale:1, opacity:1, renderOrder: 100 - Math.abs(o)*2 };
+  if (o >= 0) {
+    // in stack behind active (peeking above active since we want the top edge to show)
+    s.y       = o * 0.14;           // slightly above (top strip peeks above the front poster)
+    s.z       = -o * 0.34;          // recedes
+    s.scale   = Math.max(0.76, 1 - o * 0.07);
+    s.opacity = Math.max(0.3, 1 - o * 0.38);
+    s.rotX    = 0;
+  } else {
+    const a = -o;
+    // rising up, tipping forward, fading
+    s.y       = a * 2.6;
+    s.z       = a * 0.35;
+    s.rotX    = -a * 0.55;
+    s.scale   = Math.max(0.7,  1 - a * 0.04);
+    s.opacity = Math.max(0,    1 - a * 0.85);
+  }
+  return s;
+}
+
+// apply state to mesh
+function applyState(m, s) {
+  m.mesh.position.set(s.x, s.y, s.z);
+  m.mesh.rotation.x = s.rotX;
+  m.mesh.scale.setScalar(s.scale);
+  m.mat.opacity = s.opacity;
+  m.mesh.renderOrder = s.renderOrder;
+  m.mesh.visible = s.opacity > 0.01;
+}
+
+// determine active poster from fractional stackPos
+function activeIndex(stackPos) {
+  return Math.round(Math.max(0, Math.min(N - 1, stackPos)));
+}
+
+// ----- cursor movement -----
+const trailCanvas = document.getElementById('cursor-trail');
+const tctx = trailCanvas.getContext('2d');
+function sizeTrail() {
+  trailCanvas.width  = innerWidth  * devicePixelRatio;
+  trailCanvas.height = innerHeight * devicePixelRatio;
+  trailCanvas.style.width  = innerWidth  + 'px';
+  trailCanvas.style.height = innerHeight + 'px';
+}
+sizeTrail();
+const trail = [];
+function pushTrail(x, y) {
+  trail.push({ x, y, t: performance.now() });
+  if (trail.length > 20) trail.shift();
+}
+
+let lastScreen = { x: innerWidth/2, y: innerHeight/2 };
+
+window.addEventListener('pointermove', (e) => {
+  lastScreen.x = e.clientX;
+  lastScreen.y = e.clientY;
+  cursorEl.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+  pushTrail(e.clientX, e.clientY);
+
+  if (isDragging && e.pointerId === dragPointerId) {
+    const deltaY     = dragStartClientY - e.clientY;      // up = positive
+    const deltaScrub = (deltaY / DRAG_PX_PER_CARD) / (N - 1);
+    targetMouseY = Math.max(0, Math.min(1, dragStartScrub + deltaScrub));
+    const mx = Math.abs(e.clientX - downScreen.x);
+    const my = Math.abs(e.clientY - downScreen.y);
+    if (Math.hypot(mx, my) > CLICK_MAX_PX) dragMoved = true;
+  }
+});
+
+function raycastPoster(x, y) {
+  const ndc = new THREE.Vector2(
+    (x / innerWidth) * 2 - 1,
+    -(y / innerHeight) * 2 + 1
+  );
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObjects(posters.map(p => p.mesh), false);
+  if (!hits.length) return null;
+  return posters.find(p => p.mesh === hits[0].object);
+}
+
+// pointerdown: start potential drag (and remember which poster was pressed, for click-routing on release)
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  spawnRipple(e.clientX, e.clientY);
+  if (!interacted) { interacted = true; hintCenter.classList.remove('show'); }
+
+  isDragging       = true;
+  dragPointerId    = e.pointerId;
+  dragStartClientY = e.clientY;
+  dragStartScrub   = targetMouseY;
+  dragMoved        = false;
+  downAt           = performance.now();
+  downScreen       = { x: e.clientX, y: e.clientY };
+
+  const hit = raycastPoster(e.clientX, e.clientY);
+  downPosterIndex = hit ? hit.i : -1;
+
+  cursorEl.classList.add('grab');
+});
+
+function finishPointer(e) {
+  if (!isDragging || e.pointerId !== dragPointerId) return;
+  const duration = performance.now() - downAt;
+  const isClick = !dragMoved && duration < CLICK_MAX_MS;
+
+  if (isClick) {
+    // tap/click: route by what was pressed
+    if (downPosterIndex >= 0) {
+      const active = activeIndex(mouseY * (N - 1));
+      if (downPosterIndex === active) {
+        const m = posters[downPosterIndex];
+        const flash = document.createElement('div');
+        flash.style.cssText = `position:fixed;inset:0;background:${C.bone};z-index:150;pointer-events:none;opacity:0.85;transition:opacity 260ms ease;`;
+        document.body.appendChild(flash);
+        requestAnimationFrame(() => flash.style.opacity = '0');
+        setTimeout(() => flash.remove(), 320);
+        if (m.entry.href && m.entry.href !== '#') {
+          window.open(m.entry.href, '_blank', 'noopener,noreferrer');
+        }
+      } else {
+        // jump to clicked poster
+        targetMouseY = downPosterIndex / (N - 1);
+      }
+    }
+  } else {
+    // released after drag: snap to nearest
+    const pos = targetMouseY * (N - 1);
+    const snapped = Math.round(pos);
+    targetMouseY = snapped / (N - 1);
+  }
+
+  isDragging = false;
+  dragPointerId = null;
+  cursorEl.classList.remove('grab');
+}
+
+canvas.addEventListener('pointerup',     finishPointer);
+canvas.addEventListener('pointercancel', finishPointer);
+
+function spawnRipple(x, y) {
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  r.style.left = x + 'px';
+  r.style.top  = y + 'px';
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 460);
+}
+
+// keyboard
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp')   { targetMouseY = Math.min(1, Math.round(mouseY * (N-1) + 1) / (N-1)); }
+  if (e.key === 'ArrowDown') { targetMouseY = Math.max(0, Math.round(mouseY * (N-1) - 1) / (N-1)); }
+  if (e.key === 'Enter') {
+    const m = posters[activeIndex(mouseY * (N-1))];
+    if (m?.entry?.href && m.entry.href !== '#') window.open(m.entry.href, '_blank', 'noopener');
+  }
+});
+
+// hover raycast for cursor state
+function updateHoverState() {
+  if (isDragging) return; // grab class is authoritative during drag
+  const ndc = new THREE.Vector2(
+    (lastScreen.x / innerWidth) * 2 - 1,
+    -(lastScreen.y / innerHeight) * 2 + 1
+  );
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(ndc, camera);
+  const stackPos = mouseY * (N - 1);
+  const active = activeIndex(stackPos);
+  const activeMesh = posters[active]?.mesh;
+  if (!activeMesh) { cursorEl.classList.remove('hover'); return; }
+  const hit = ray.intersectObject(activeMesh, false);
+  cursorEl.classList.toggle('hover', hit.length > 0);
+}
+
+// ----- trail draw -----
+function drawTrail() {
+  tctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  tctx.clearRect(0, 0, innerWidth, innerHeight);
+  const now = performance.now();
+  tctx.strokeStyle = '#D8FF00';
+  tctx.lineWidth = 1;
+  for (let i = 1; i < trail.length; i++) {
+    const a = trail[i-1], b = trail[i];
+    const age = (now - b.t) / 400;
+    if (age > 1) continue;
+    tctx.globalAlpha = (1 - age) * 0.5;
+    tctx.beginPath(); tctx.moveTo(a.x, a.y); tctx.lineTo(b.x, b.y); tctx.stroke();
+  }
+  tctx.globalAlpha = 1;
+}
+
+// ----- post-processing -----
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.48, 0.55, 0.86);
+composer.addPass(bloom);
+
+const chromaGrain = {
+  uniforms: {
+    tDiffuse:  { value: null },
+    uTime:     { value: 0 },
+    uChroma:   { value: 0.0015 },
+    uGrain:    { value: 0.05 },
+    uVignette: { value: 0.75 },
+    uResolution:{ value: new THREE.Vector2(innerWidth, innerHeight) },
+  },
+  vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform float uTime; uniform float uChroma; uniform float uGrain; uniform float uVignette; uniform vec2 uResolution;
+    varying vec2 vUv;
+    float hash(vec2 p){ p=fract(p*vec2(233.34,851.73)); p+=dot(p,p+23.45); return fract(p.x*p.y); }
+    void main(){
+      vec2 uv=vUv; vec2 d=uv-0.5; float r=length(d);
+      float a=uChroma*(0.3+r*1.8);
+      float R=texture2D(tDiffuse,uv+d*a).r;
+      vec4  G=texture2D(tDiffuse,uv);
+      float B=texture2D(tDiffuse,uv-d*a).b;
+      vec3 c=vec3(R,G.g,B);
+      vec2 gg=floor(uv*uResolution/1.2);
+      float n=hash(gg+mod(uTime*24.,1000.));
+      c += (n-0.5)*uGrain;
+      float v=smoothstep(1.15,0.35,r*1.55);
+      c*=mix(1.,v,uVignette);
+      gl_FragColor=vec4(c,1.);
+    }
+  `,
+};
+const chromaPass = new ShaderPass(chromaGrain);
+composer.addPass(chromaPass);
+composer.addPass(new OutputPass());
+
+if (innerWidth < 640) {
+  bloom.strength = 0.3;
+  chromaPass.uniforms.uChroma.value = 0.0008;
+  chromaPass.uniforms.uGrain.value  = 0.03;
+}
+
+// ----- resize -----
+addEventListener('resize', () => {
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  bloom.setSize(innerWidth, innerHeight);
+  chromaPass.uniforms.uResolution.value.set(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  sizeTrail();
+});
+
+// ----- indicator UI -----
+function updateIndicator() {
+  const stackPos = mouseY * (N - 1);
+  // head y position in .line (0-110px)
+  const headPct = (stackPos / (N - 1));
+  stackHead.style.top = (headPct * 100) + '%';
+  const active = activeIndex(stackPos);
+  stackDots.forEach(d => d.classList.toggle('active', +d.dataset.i === active));
+}
+
+// ----- main loop -----
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function tick() {
+  requestAnimationFrame(tick);
+  const now = performance.now();
+
+  // lerp mouseY → targetMouseY (damped follow)
+  mouseY += (targetMouseY - mouseY) * (reduceMotion ? 1 : 0.085);
+
+  // stackPos maps to which poster is active (0 .. N-1)
+  const stackPos = mouseY * (N - 1);
+
+  // apply transforms
+  for (const p of posters) {
+    const offset = p.i - stackPos;
+    const s = stateForOffset(offset);
+    // subtle idle breath on active poster
+    if (!reduceMotion && Math.abs(offset) < 0.25) {
+      const t = now / 1000;
+      s.y     += Math.sin(t * 0.8) * 0.008;
+      s.rotX  += Math.sin(t * 0.6) * 0.006;
+    }
+    applyState(p, s);
+  }
+
+  updateHoverState();
+  updateIndicator();
+  drawTrail();
+
+  chromaPass.uniforms.uTime.value = now / 1000;
+  composer.render();
+}
+
+// ----- reveal & start -----
+requestAnimationFrame(() => {
+  document.getElementById('boot').classList.add('done');
+  tick();
+  setTimeout(() => { if (!interacted) hintCenter.classList.add('show'); }, 700);
+});
 </script>
 
 </body>
