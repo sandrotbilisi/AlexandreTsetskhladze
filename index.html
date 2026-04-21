@@ -307,6 +307,80 @@
   .ui .brand     { top: calc(30px + clamp(14px, 2.2vw, 26px)); }
   .ui .corner-tr { top: calc(30px + clamp(14px, 2.2vw, 26px)); }
 
+  /* ------- live chain (blockchain motif) ------- */
+  .mini-chain {
+    position: fixed;
+    top: calc(30px + clamp(14px, 2.2vw, 26px) + 64px);
+    right: clamp(18px, 3vw, 32px);
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 6px;
+    z-index: 10;
+    pointer-events: none;
+    font-family: var(--font-mono);
+  }
+  .mc-label {
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--plasma);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mc-label::before {
+    content: "";
+    width: 6px; height: 6px;
+    background: var(--plasma);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--plasma);
+    animation: mc-pulse 1.7s ease-in-out infinite;
+  }
+  @keyframes mc-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.9); }
+    50%      { opacity: 1;   transform: scale(1.1); }
+  }
+  .mc-track {
+    display: flex; align-items: center; gap: 3px;
+  }
+  .mc-track .blk {
+    min-width: 32px;
+    height: 18px;
+    padding: 0 5px;
+    border: 1px solid rgba(237,230,213,0.2);
+    display: grid; place-items: center;
+    font-size: 8.5px;
+    letter-spacing: 0.06em;
+    color: var(--bone-dim);
+    background: rgba(19,19,26,0.5);
+    transition: all 650ms cubic-bezier(.2,1,.3,1);
+    font-variant-numeric: tabular-nums;
+  }
+  .mc-track .blk.head {
+    border-color: var(--plasma);
+    background: rgba(106,46,255,0.18);
+    color: #C7B3FF;
+    box-shadow: 0 0 10px rgba(106,46,255,0.45), inset 0 0 6px rgba(106,46,255,0.25);
+  }
+  .mc-track .blk.entering {
+    opacity: 0;
+    transform: translateX(12px) scale(0.6);
+  }
+  .mc-track .lnk {
+    width: 6px; height: 1px;
+    background: rgba(237,230,213,0.22);
+  }
+  .mc-num {
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    color: var(--bone-dim);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .mc-num b {
+    font-weight: 400;
+    color: var(--bone);
+  }
+
+  @media (max-width: 760px) { .mini-chain { display: none; } }
+
   /* ------- LEGENDARY REVEAL ------- */
 
   /* particle burst */
@@ -637,6 +711,13 @@
     </div>
   </div>
 
+  <!-- live block chain motif -->
+  <div class="mini-chain" aria-hidden="true">
+    <div class="mc-label">live chain</div>
+    <div class="mc-track" id="mcTrack"></div>
+    <div class="mc-num">block <b id="mcNum">——,———,———</b></div>
+  </div>
+
   <div class="hud">
     <span><b>click + drag</b> up · down</span>
     <span class="sep">/</span>
@@ -710,14 +791,14 @@ const ENTRIES = [
   {
     type: 'about',
     year: '—',
-    name: 'ALEXANDRE',
-    name2:'TSETSKHLADZE',
+    name: 'MY NAME IS',
+    name2:'ALEXANDRE TSETSKHLADZE',
     meta: 'WEB3 + WEB2 DEV · TBILISI',
     num:  '— THE PERSON —',
     href: 'mailto:atsetsoffc@gmail.com',
     tone: 'plasma',
     project: 'Build. Win. Ship.',
-    achievements: ['NEXT.JS · REACT · FOUNDRY', 'SOLIDITY · MONGO · AWS', 'MAIL →  inbox'],
+    achievements: ['NEXT.JS · REACT · FOUNDRY', 'SOLIDITY · MONGO · AWS', '…AND MORE', 'MAIL →  inbox'],
   },
   {
     year: '2026',
@@ -988,13 +1069,14 @@ function makePosterTexture(entry) {
     g.globalAlpha = 1;
   }
 
-  // ======== hackathon name ========
+  // ======== hackathon name (or about's "MY NAME IS / …" long form) ========
   g.fillStyle = t.type;
-  g.font = '700 84px "Bricolage Grotesque", sans-serif';
+  const nameSize = entry.type === 'about' ? 60 : 84;
+  g.font = `700 ${nameSize}px "Bricolage Grotesque", sans-serif`;
   g.textAlign = 'left';
   g.textBaseline = 'alphabetic';
   g.fillText(entry.name,  80, 790);
-  g.fillText(entry.name2, 80, 882);
+  g.fillText(entry.name2, 80, entry.type === 'about' ? 862 : 882);
 
   // meta
   g.fillStyle = t.type;
@@ -1044,8 +1126,9 @@ function makePosterTexture(entry) {
   g.globalAlpha = 1;
 
   if (entry.achievements.length > 0) {
+    const aGap = entry.achievements.length >= 4 ? 46 : 54;
     entry.achievements.forEach((award, i) => {
-      const y = 1192 + i * 54;
+      const y = 1192 + i * aGap;
       // accent diamond marker
       g.fillStyle = t.accent;
       g.beginPath();
@@ -1476,6 +1559,43 @@ function updateIndicator() {
   stackHead.style.top = (headPct * 100) + '%';
   const active = activeIndex(stackPos);
   stackDots.forEach(d => d.classList.toggle('active', +d.dataset.i === active));
+}
+
+// ----- LIVE CHAIN motif -----
+{
+  const track = document.getElementById('mcTrack');
+  const numEl = document.getElementById('mcNum');
+  let blockNum = 21_480_000 + Math.floor(Math.random() * 20_000);
+  const history = [];
+  const MAX = 6;
+
+  const randHash = () => Array.from({ length: 3 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  function render() {
+    track.innerHTML = '';
+    history.forEach((h, i) => {
+      if (i > 0) {
+        const l = document.createElement('div');
+        l.className = 'lnk';
+        track.appendChild(l);
+      }
+      const b = document.createElement('div');
+      b.className = 'blk' + (i === history.length - 1 ? ' head' : '');
+      b.textContent = h;
+      track.appendChild(b);
+    });
+    numEl.textContent = blockNum.toLocaleString();
+  }
+
+  function tick() {
+    if (history.length >= MAX) history.shift();
+    history.push(randHash());
+    blockNum++;
+    render();
+  }
+
+  for (let i = 0; i < MAX; i++) tick();
+  setInterval(tick, 12000);
 }
 
 // ----- LEGENDARY REVEAL -----
