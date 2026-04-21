@@ -159,18 +159,268 @@
     box-shadow: 0 0 12px var(--acid);
   }
   .stack-indicator .dots {
-    display: flex; flex-direction: column; gap: 28px;
-    margin-top: 8px;
+    display: flex; flex-direction: column; gap: 13px;
+    margin-top: 10px;
     font-family: var(--font-mono);
-    font-size: 10.5px;
+    font-size: 9.5px;
     letter-spacing: 0.2em;
     color: var(--bone-dim);
     align-items: flex-end;
   }
-  .stack-indicator .dots span { transition: color 120ms, opacity 120ms; }
+  .stack-indicator .dots span {
+    transition: color 120ms, opacity 120ms;
+    cursor: none;
+    padding: 2px 0;
+  }
+  .stack-indicator .dots span:hover { color: var(--bone); opacity: 1; }
   .stack-indicator .dots span.active { color: var(--acid); }
   .stack-indicator .dots span.about { color: var(--plasma); opacity: 0.55; }
+  .stack-indicator .dots span.about:hover { color: var(--plasma); opacity: 1; }
   .stack-indicator .dots span.about.active { color: var(--plasma); opacity: 1; }
+
+  /* top marquee */
+  .marquee {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 30px;
+    z-index: 15;
+    display: flex; align-items: center;
+    overflow: hidden;
+    background: var(--pitch);
+    border-bottom: 1px solid rgba(237,230,213,0.08);
+  }
+  .marquee-inner {
+    display: flex; gap: 0;
+    white-space: nowrap;
+    animation: marquee-scroll 62s linear infinite;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--bone-dim);
+    min-width: max-content;
+  }
+  .marquee-inner span { padding: 0 22px; }
+  .marquee-inner .acid   { color: var(--acid); }
+  .marquee-inner .flare  { color: var(--flare); }
+  .marquee-inner .plasma { color: var(--plasma); }
+  .marquee-inner a {
+    color: inherit; text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(237,230,213,0.3);
+    transition: color 120ms, text-decoration-color 120ms;
+  }
+  .marquee-inner a:hover {
+    color: var(--acid);
+    text-decoration-color: var(--acid);
+  }
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* left-edge massive vertical word */
+  .side-left {
+    position: fixed;
+    left: 0; top: 30px; bottom: 0;
+    width: 120px;
+    z-index: 2;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  .side-left-inner {
+    transform: rotate(-90deg);
+    transform-origin: center center;
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 75, "wght" 800;
+    font-size: clamp(64px, 11vw, 168px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--bone);
+    opacity: 0.06;
+    white-space: nowrap;
+  }
+  .side-left-inner em {
+    font-style: normal;
+    color: var(--flare);
+    opacity: 1;
+  }
+
+  /* bottom-left meta */
+  .corner-bl {
+    position: fixed;
+    bottom: clamp(18px, 3vw, 28px);
+    left: clamp(18px, 3vw, 32px);
+    display: flex; flex-direction: column; gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .corner-bl .cbl-1 { color: var(--bone); }
+  .corner-bl .cbl-2 { color: var(--bone-dim); font-size: 9.5px; }
+  .corner-bl .cbl-3 {
+    color: var(--acid);
+    margin-top: 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .corner-bl .cbl-3::before {
+    content: "";
+    width: 6px; height: 6px;
+    background: var(--acid);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--acid);
+    display: inline-block;
+  }
+
+  /* bottom-right tagline */
+  .corner-br {
+    position: fixed;
+    bottom: clamp(18px, 3vw, 28px);
+    right: clamp(18px, 3vw, 32px);
+    display: flex; flex-direction: column; gap: 3px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .corner-br .cbr-1 {
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 82, "wght" 600;
+    text-transform: none;
+    letter-spacing: -0.005em;
+    font-size: 15px;
+    color: var(--bone);
+  }
+  .corner-br .cbr-1 em { font-style: italic; color: var(--flare); font-style: italic; }
+  .corner-br .cbr-2 { color: var(--bone-dim); font-size: 9.5px; }
+
+  /* shift brand + idx below marquee */
+  .ui .brand     { top: calc(30px + clamp(14px, 2.2vw, 26px)); }
+  .ui .corner-tr { top: calc(30px + clamp(14px, 2.2vw, 26px)); }
+
+  /* ------- LEGENDARY REVEAL ------- */
+
+  /* particle burst */
+  .lgd-burst {
+    position: fixed;
+    pointer-events: none;
+    z-index: 25;
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+    animation: lgd-burst-anim 1000ms cubic-bezier(.2,.7,.3,1) forwards;
+    box-shadow: 0 0 12px currentColor;
+  }
+  .lgd-burst.dot  { border-radius: 50%; }
+  .lgd-burst.star {
+    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  @keyframes lgd-burst-anim {
+    0%   { transform: translate(-50%, -50%) translate(0, 0) scale(0) rotate(0); opacity: 0; }
+    15%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1) rotate(var(--rot)); opacity: 0; }
+  }
+
+  /* flash (radial colored gradient swelling) */
+  .lgd-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 24;
+    pointer-events: none;
+    opacity: 0;
+    animation: lgd-flash-anim 650ms cubic-bezier(.1,.9,.2,1) forwards;
+    mix-blend-mode: screen;
+    will-change: opacity, transform;
+  }
+  @keyframes lgd-flash-anim {
+    0%   { opacity: 0; }
+    25%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* light rays (conic radiating) */
+  .lgd-rays {
+    position: fixed;
+    width: clamp(520px, 80vmin, 1000px);
+    height: clamp(520px, 80vmin, 1000px);
+    z-index: 23;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    animation: lgd-rays-anim 1300ms cubic-bezier(.1,.9,.2,1) forwards;
+    -webkit-mask: radial-gradient(circle, rgba(0,0,0,0.95) 8%, rgba(0,0,0,0.3) 35%, transparent 60%);
+            mask: radial-gradient(circle, rgba(0,0,0,0.95) 8%, rgba(0,0,0,0.3) 35%, transparent 60%);
+    filter: blur(1.5px);
+    will-change: transform, opacity;
+  }
+  @keyframes lgd-rays-anim {
+    0%   { transform: translate(-50%, -50%) scale(0) rotate(0); opacity: 0; }
+    18%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.3) rotate(110deg); opacity: 0; }
+  }
+
+  /* legendary label */
+  .lgd-label {
+    position: fixed;
+    left: var(--lx, 50%);
+    top: var(--ly, 30%);
+    transform: translate(-50%, -50%);
+    z-index: 26;
+    pointer-events: none;
+  }
+  .lgd-label-inner {
+    display: block;
+    opacity: 0;
+    transform: scale(0.6);
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 95, "wght" 800;
+    font-size: clamp(32px, 6vw, 76px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--acid);
+    text-shadow: 0 0 30px rgba(216,255,0,0.65), 0 0 70px rgba(216,255,0,0.35);
+    white-space: nowrap;
+    animation: lgd-label-anim 1900ms cubic-bezier(.2,1.2,.3,1) forwards;
+    will-change: transform, opacity;
+  }
+  .lgd-label-inner em {
+    font-style: normal;
+    color: var(--flare);
+    text-shadow: 0 0 30px rgba(255,42,26,0.8);
+  }
+  @keyframes lgd-label-anim {
+    0%   { opacity: 0; transform: scale(0.6); }
+    14%  { opacity: 1; transform: scale(1.2); }
+    26%  { transform: scale(0.94); }
+    38%  { transform: scale(1.04); }
+    50%  { transform: scale(1); }
+    78%  { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(1) translateY(-34px); }
+  }
+
+  /* scene shake on impact */
+  .lgd-shake { animation: lgd-shake-anim 320ms cubic-bezier(.36,.07,.19,.97); }
+  @keyframes lgd-shake-anim {
+    0%, 100% { transform: translate(0, 0); }
+    18% { transform: translate(0, 3px); }
+    36% { transform: translate(-3px, -2px); }
+    55% { transform: translate(3px, 0); }
+    74% { transform: translate(-1px, 2px); }
+    90% { transform: translate(1px, -1px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lgd-burst, .lgd-rays, .lgd-shake { animation: none; display: none; }
+  }
 
   /* centered primary hint */
   .hint-center {
@@ -285,8 +535,13 @@
   @media (max-width: 760px) {
     .stack-indicator { right: 14px; }
     .stack-indicator .line { height: 76px; }
-    .stack-indicator .dots { gap: 20px; font-size: 9.5px; }
+    .stack-indicator .dots { gap: 9px; font-size: 8.5px; }
     .hud { font-size: 9.5px; gap: 12px; padding: 0 16px; text-align: center; flex-wrap: wrap; }
+    .side-left, .corner-bl, .corner-br { display: none; }
+    .marquee { height: 26px; }
+    .marquee-inner { font-size: 9.5px; }
+    .ui .brand     { top: calc(26px + 12px); }
+    .ui .corner-tr { top: calc(26px + 12px); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -325,6 +580,37 @@
 </div>
 
 <div class="ui">
+
+  <!-- top marquee ticker -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-inner">
+      <span class="acid">◇ Available for work</span>
+      <span>◇ Tbilisi · Georgia</span>
+      <span>◇ 9 hackathons · 2023—2026</span>
+      <span class="flare">◇ Brussels — Finalist + Zircuit + Zerion 3rd</span>
+      <span class="flare">◇ San Francisco — Chronicle 1st · Unlimit</span>
+      <span>◇ Prague — Filecoin × Akave 2nd</span>
+      <span>◇ London — Arbitrum + Worldcoin</span>
+      <span>◇ Say hello ↗ <a href="mailto:atsetsoffc@gmail.com">atsetsoffc@gmail.com</a></span>
+      <span class="plasma">◇ A selected record · filed MMXXVI</span>
+      <!-- duplicated for continuous loop -->
+      <span class="acid">◇ Available for work</span>
+      <span>◇ Tbilisi · Georgia</span>
+      <span>◇ 9 hackathons · 2023—2026</span>
+      <span class="flare">◇ Brussels — Finalist + Zircuit + Zerion 3rd</span>
+      <span class="flare">◇ San Francisco — Chronicle 1st · Unlimit</span>
+      <span>◇ Prague — Filecoin × Akave 2nd</span>
+      <span>◇ London — Arbitrum + Worldcoin</span>
+      <span>◇ Say hello ↗ <a href="mailto:atsetsoffc@gmail.com">atsetsoffc@gmail.com</a></span>
+      <span class="plasma">◇ A selected record · filed MMXXVI</span>
+    </div>
+  </div>
+
+  <!-- left-edge ambient vertical -->
+  <div class="side-left" aria-hidden="true">
+    <div class="side-left-inner">HACKATHONS<em>.</em></div>
+  </div>
+
   <h1 class="brand">
     <span class="t1">Hackathons<em>.</em></span>
     <span class="t2">by Alexandre Tsetskhladze</span>
@@ -332,8 +618,8 @@
 
   <div class="corner-tr">
     <div class="idx">
-      <span class="idx-t1">03 Hackathons</span>
-      <span class="idx-t2">+ a hello at the end</span>
+      <span class="idx-t1">10 cards</span>
+      <span class="idx-t2">hello + 09 hackathons</span>
     </div>
   </div>
 
@@ -345,13 +631,32 @@
     <span>click the front card to open</span>
   </div>
 
+  <!-- bottom-left meta -->
+  <div class="corner-bl" aria-hidden="true">
+    <div class="cbl-1">Tbilisi · Georgia</div>
+    <div class="cbl-2">41.71° N · 44.82° E</div>
+    <div class="cbl-3">open to work</div>
+  </div>
+
+  <!-- bottom-right tagline -->
+  <div class="corner-br" aria-hidden="true">
+    <div class="cbr-1">A selected <em>record</em></div>
+    <div class="cbr-2">v · 01 · 2026</div>
+  </div>
+
   <div class="stack-indicator" aria-hidden="true">
     <div class="line"><div class="head" id="stackHead"></div></div>
     <div class="dots">
-      <span data-i="0" class="active">2026</span>
-      <span data-i="1">2025</span>
-      <span data-i="2">2025</span>
-      <span data-i="3" class="about">HI</span>
+      <span data-i="0" class="active about">HI</span>
+      <span data-i="1">CNS</span>
+      <span data-i="2">PRG</span>
+      <span data-i="3">SFO</span>
+      <span data-i="4">BRU</span>
+      <span data-i="5">LDN</span>
+      <span data-i="6">IST</span>
+      <span data-i="7">WAW</span>
+      <span data-i="8">PAR</span>
+      <span data-i="9">BNB</span>
     </div>
   </div>
 </div>
@@ -389,49 +694,119 @@ const C = {
 // ----- content -----
 const ENTRIES = [
   {
-    year: '2026',
-    name: 'ETHGLOBAL',
-    name2:'CANNES',
-    meta: 'CÔTE D’AZUR · JUILLET',
-    num:  'N° 2026·01',
-    href: 'https://ethglobal.com/events/cannes',
-    tone: 'flare',
-    project: 'Oh Snap!',
-    achievements: ['FINALIST', 'METAMASK WINNER'],
-  },
-  {
-    year: '2025',
-    name: '[PLACEHOLDER]',
-    name2:'ENTRY · 02',
-    meta: 'LOCATION & HOST TBC',
-    num:  'N° 2025·02',
-    href: '#',
-    tone: 'bone',
-    project: null,
-    achievements: [],
-  },
-  {
-    year: '2025',
-    name: '[PLACEHOLDER]',
-    name2:'ENTRY · 03',
-    meta: 'LOCATION & HOST TBC',
-    num:  'N° 2025·03',
-    href: '#',
-    tone: 'acid',
-    project: null,
-    achievements: [],
-  },
-  {
     type: 'about',
     year: '—',
     name: 'ALEXANDRE',
     name2:'TSETSKHLADZE',
-    meta: 'BUILDER · TBILISI',
+    meta: 'WEB3 + WEB2 DEV · TBILISI',
     num:  '— THE PERSON —',
     href: 'mailto:atsetsoffc@gmail.com',
     tone: 'plasma',
     project: 'Build. Win. Ship.',
-    achievements: ['GITHUB  @handle', 'TWITTER @handle', 'MAIL →  inbox'],
+    achievements: ['NEXT.JS · REACT · FOUNDRY', 'SOLIDITY · MONGO · AWS', 'MAIL →  inbox'],
+  },
+  {
+    year: '2026',
+    name: 'ETHGLOBAL',
+    name2:'CANNES',
+    meta: 'CÔTE D’AZUR · FRANCE',
+    num:  'N° 2026·01',
+    href: 'https://ethglobal.com/showcase/arccounting-2h71j',
+    tone: 'flare',
+    project: 'Arccounting',
+    achievements: [],
+  },
+  {
+    year: '2025',
+    name: 'ETHGLOBAL',
+    name2:'PRAGUE',
+    meta: 'ČESKÁ REPUBLIKA',
+    num:  'N° 2025·01',
+    href: 'https://ethglobal.com/showcase/ontology-fsn3g',
+    tone: 'bone',
+    project: 'Ontology',
+    achievements: ['FILECOIN × AKAVE · 2ND'],
+  },
+  {
+    year: '2024',
+    name: 'ETHGLOBAL',
+    name2:'SAN FRANCISCO',
+    meta: 'CALIFORNIA · USA',
+    num:  'N° 2024·04',
+    href: 'https://ethglobal.com/showcase/aurum-7ry36',
+    tone: 'acid',
+    project: 'Aurum',
+    achievements: ['CHRONICLE · 1ST PLACE', 'UNLIMIT · CRYPTO CHECKOUTS'],
+    legendary: true,
+  },
+  {
+    year: '2024',
+    name: 'ETHGLOBAL',
+    name2:'BRUSSELS',
+    meta: 'BELGIUM',
+    num:  'N° 2024·03',
+    href: 'https://ethglobal.com/showcase/oh-snap-4u2kv',
+    tone: 'flare',
+    project: 'Oh Snap!',
+    achievements: ['ETHGLOBAL · FINALIST', 'ZIRCUIT · BEST GAMING/NFT', 'ZERION · 3RD PLACE'],
+    legendary: true,
+  },
+  {
+    year: '2024',
+    name: 'ETHGLOBAL',
+    name2:'LONDON',
+    meta: 'ENGLAND · UK',
+    num:  'N° 2024·01',
+    href: 'https://ethglobal.com/showcase/decademic-tvkyt',
+    tone: 'acid',
+    project: 'DeCademic',
+    achievements: ['ARBITRUM · QUALIFIER', 'WORLDCOIN · POOL PRIZE'],
+  },
+  {
+    year: '2023',
+    name: 'ETHGLOBAL',
+    name2:'ISTANBUL',
+    meta: 'TÜRKIYE',
+    num:  'N° 2023·04',
+    href: 'https://ethglobal.com/showcase/decentralex-jdj8i',
+    tone: 'flare',
+    project: 'DecentraleX',
+    achievements: ['WORLDCOIN · BEST SIGN-IN APP'],
+    legendary: true,
+  },
+  {
+    year: '2023',
+    name: 'ETHWARSAW',
+    name2:'POLAND',
+    meta: 'WARSZAWA',
+    num:  'N° 2023·03',
+    href: 'https://devpost.com/software/multilend',
+    tone: 'bone',
+    project: 'MultiLend',
+    achievements: ['MANTLE · BEST DEFI', 'ETHWARSAW · BEST OVERALL'],
+    legendary: true,
+  },
+  {
+    year: '2023',
+    name: 'FHE HACK',
+    name2:'PARIS',
+    meta: 'FHENIX × ZAMA · FRANCE',
+    num:  'N° 2023·02',
+    href: '#',
+    tone: 'flare',
+    project: null,
+    achievements: ['2ND PLACE'],
+  },
+  {
+    year: '2023',
+    name: 'BINANCE',
+    name2:'HACKATHON',
+    meta: 'ONLINE',
+    num:  'N° 2023·01',
+    href: '#',
+    tone: 'acid',
+    project: null,
+    achievements: ['2ND PLACE'],
   },
 ];
 
@@ -785,7 +1160,7 @@ let dragMoved         = false;
 let downAt            = 0;
 let downScreen        = { x: 0, y: 0 };
 let downPosterIndex   = -1;
-const DRAG_PX_PER_CARD = 260;        // how many px of drag = 1 card
+const DRAG_PX_PER_CARD = 110;        // how many px of drag = 1 card
 const CLICK_MAX_PX     = 7;
 const CLICK_MAX_MS     = 360;
 
@@ -820,7 +1195,8 @@ function stateForOffset(o) {
 function applyState(m, s) {
   m.mesh.position.set(s.x, s.y, s.z);
   m.mesh.rotation.x = s.rotX;
-  m.mesh.scale.setScalar(s.scale);
+  m.mesh.rotation.z = m.legendarySpinZ || 0;
+  m.mesh.scale.setScalar(s.scale * (m.legendaryScale || 1));
   m.mat.opacity = s.opacity;
   m.mesh.renderOrder = s.renderOrder;
   m.mesh.visible = s.opacity > 0.01;
@@ -1047,6 +1423,17 @@ addEventListener('resize', () => {
   sizeTrail();
 });
 
+// indicator dots are clickable — tap-to-jump
+stackDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    const idx = +dot.dataset.i;
+    if (Number.isFinite(idx)) {
+      targetMouseY = idx / (N - 1);
+      if (!interacted) { interacted = true; hintCenter.classList.remove('show'); }
+    }
+  });
+});
+
 // ----- indicator UI -----
 function updateIndicator() {
   const stackPos = mouseY * (N - 1);
@@ -1055,6 +1442,132 @@ function updateIndicator() {
   stackHead.style.top = (headPct * 100) + '%';
   const active = activeIndex(stackPos);
   stackDots.forEach(d => d.classList.toggle('active', +d.dataset.i === active));
+}
+
+// ----- LEGENDARY REVEAL -----
+function getCardScreenPos(poster) {
+  const v = new THREE.Vector3();
+  poster.mesh.getWorldPosition(v);
+  v.project(camera);
+  return {
+    x: (v.x + 1) * innerWidth / 2,
+    y: (-v.y + 1) * innerHeight / 2,
+  };
+}
+
+function spawnLgdBurst(cx, cy) {
+  const NP = innerWidth < 640 ? 28 : 48;
+  const palette = ['#D8FF00', '#FF2A1A', '#EDE6D5'];
+  for (let i = 0; i < NP; i++) {
+    const p = document.createElement('div');
+    const isStar = i % 6 === 0;
+    p.className = isStar ? 'lgd-burst star' : 'lgd-burst dot';
+    const angle = (Math.PI * 2 * i) / NP + (Math.random() - 0.5) * 0.4;
+    const dist  = 170 + Math.random() * 300;
+    const sz    = isStar ? 14 + Math.random() * 10 : 4 + Math.random() * 7;
+    const col   = palette[Math.floor(Math.random() * palette.length)];
+    p.style.width  = sz + 'px';
+    p.style.height = sz + 'px';
+    p.style.left   = cx + 'px';
+    p.style.top    = cy + 'px';
+    p.style.color  = col;
+    p.style.background = col;
+    p.style.setProperty('--tx',  (Math.cos(angle) * dist).toFixed(0) + 'px');
+    p.style.setProperty('--ty',  (Math.sin(angle) * dist).toFixed(0) + 'px');
+    p.style.setProperty('--rot', Math.floor(Math.random() * 720 - 360) + 'deg');
+    p.style.animationDuration = (900 + Math.random() * 600) + 'ms';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1700);
+  }
+}
+
+function spawnLgdFlash(cx, cy) {
+  const f = document.createElement('div');
+  f.className = 'lgd-flash';
+  f.style.background = `radial-gradient(circle at ${cx}px ${cy}px, rgba(216,255,0,0.55) 0%, rgba(255,42,26,0.32) 16%, rgba(106,46,255,0.15) 32%, transparent 50%)`;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 700);
+}
+
+function spawnLgdRays(cx, cy) {
+  const r = document.createElement('div');
+  r.className = 'lgd-rays';
+  r.style.left = cx + 'px';
+  r.style.top  = cy + 'px';
+  r.style.background = `conic-gradient(from 0deg,
+    rgba(216,255,0,0.45) 0deg 6deg, transparent 6deg 28deg,
+    rgba(255,42,26,0.35) 28deg 34deg, transparent 34deg 58deg,
+    rgba(216,255,0,0.4) 58deg 64deg, transparent 64deg 88deg,
+    rgba(216,255,0,0.45) 88deg 94deg, transparent 94deg 118deg,
+    rgba(255,42,26,0.38) 118deg 124deg, transparent 124deg 148deg,
+    rgba(216,255,0,0.4) 148deg 154deg, transparent 154deg 178deg,
+    rgba(216,255,0,0.35) 178deg 184deg, transparent 184deg 208deg,
+    rgba(255,42,26,0.35) 208deg 214deg, transparent 214deg 238deg,
+    rgba(216,255,0,0.4) 238deg 244deg, transparent 244deg 268deg,
+    rgba(216,255,0,0.35) 268deg 274deg, transparent 274deg 298deg,
+    rgba(255,42,26,0.35) 298deg 304deg, transparent 304deg 328deg,
+    rgba(216,255,0,0.4) 328deg 334deg, transparent 334deg 360deg)`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 1400);
+}
+
+function spawnLgdLabel(entry, cx, cy) {
+  const lbl = document.createElement('div');
+  lbl.className = 'lgd-label';
+  const achievements = entry.achievements || [];
+  const prize = achievements.find(a => /FINALIST|BEST OVERALL|1ST PLACE/i.test(a)) || achievements[0] || 'LEGENDARY';
+  const inner = document.createElement('div');
+  inner.className = 'lgd-label-inner';
+  inner.innerHTML = `<em>★</em> ${prize} <em>★</em>`;
+  lbl.appendChild(inner);
+  lbl.style.setProperty('--lx', cx + 'px');
+  lbl.style.setProperty('--ly', Math.max(80, cy - 260) + 'px');
+  document.body.appendChild(lbl);
+  setTimeout(() => lbl.remove(), 2000);
+}
+
+function triggerLegendary(poster) {
+  if (poster.legendaryPlaying) return;
+  poster.legendaryPlaying = true;
+
+  const { x, y } = getCardScreenPos(poster);
+
+  spawnLgdFlash(x, y);
+  spawnLgdRays(x, y);
+  setTimeout(() => spawnLgdBurst(x, y), 100);
+  setTimeout(() => spawnLgdLabel(poster.entry, x, y), 180);
+
+  canvas.classList.remove('lgd-shake');
+  void canvas.offsetWidth;
+  canvas.classList.add('lgd-shake');
+  setTimeout(() => canvas.classList.remove('lgd-shake'), 340);
+
+  const t0 = performance.now();
+  const DUR = 1100;
+  function anim() {
+    const t = Math.min(1, (performance.now() - t0) / DUR);
+
+    // Z-axis spin — decaying ease-out
+    const spinT = Math.min(1, t * 1.1);
+    const spinEase = 1 - Math.pow(1 - spinT, 2.4);
+    poster.legendarySpinZ = spinEase * Math.PI * 2;
+
+    // Scale elastic bump
+    let sc;
+    if (t < 0.22)      sc = 1 + (t / 0.22) * 0.22;
+    else if (t < 0.5)  sc = 1.22 - ((t - 0.22) / 0.28) * 0.28;
+    else if (t < 0.72) sc = 0.94 + ((t - 0.5) / 0.22) * 0.1;
+    else               sc = 1.04 - ((t - 0.72) / 0.28) * 0.04;
+    poster.legendaryScale = sc;
+
+    if (t < 1) requestAnimationFrame(anim);
+    else {
+      poster.legendarySpinZ = 0;
+      poster.legendaryScale = 1;
+      poster.legendaryPlaying = false;
+    }
+  }
+  anim();
 }
 
 // ----- main loop -----
@@ -1069,6 +1582,15 @@ function tick() {
 
   // stackPos maps to which poster is active (0 .. N-1)
   const stackPos = mouseY * (N - 1);
+
+  // legendary reveal — fire once per card when the card has settled into active
+  const actIdx = Math.round(stackPos);
+  const settled = Math.abs(stackPos - actIdx) < 0.04;
+  const actP = posters[actIdx];
+  if (settled && !isDragging && actP && actP.entry.legendary && !actP.hasPlayedLegendary && !reduceMotion) {
+    actP.hasPlayedLegendary = true;
+    triggerLegendary(actP);
+  }
 
   // apply transforms
   for (const p of posters) {
