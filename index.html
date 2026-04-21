@@ -433,9 +433,25 @@
     display: flex; flex-direction: column; align-items: center; gap: 14px;
     text-align: center;
     opacity: 0;
-    transition: opacity 500ms ease;
+    transition: opacity 400ms ease;
   }
-  .hint-center.show { opacity: 0.92; }
+  .hint-center::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: min(720px, 86vw);
+    height: 340px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+      rgba(8,8,13,0.92) 0%,
+      rgba(8,8,13,0.7)  30%,
+      rgba(8,8,13,0.35) 55%,
+      transparent       78%);
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(6px);
+  }
+  .hint-center.show { opacity: 0.98; }
   .hint-center .h1 {
     font-family: var(--font-display);
     font-variation-settings: "wdth" 85, "wght" 700;
@@ -584,9 +600,8 @@
   <!-- top marquee ticker -->
   <div class="marquee" aria-hidden="true">
     <div class="marquee-inner">
-      <span class="acid">◇ Available for work</span>
       <span>◇ Tbilisi · Georgia</span>
-      <span>◇ 9 hackathons · 2023—2026</span>
+      <span>◇ 10 hackathons · 2023—2026</span>
       <span class="flare">◇ Brussels — Finalist + Zircuit + Zerion 3rd</span>
       <span class="flare">◇ San Francisco — Chronicle 1st · Unlimit</span>
       <span>◇ Prague — Filecoin × Akave 2nd</span>
@@ -594,9 +609,8 @@
       <span>◇ Say hello ↗ <a href="mailto:atsetsoffc@gmail.com">atsetsoffc@gmail.com</a></span>
       <span class="plasma">◇ A selected record · filed MMXXVI</span>
       <!-- duplicated for continuous loop -->
-      <span class="acid">◇ Available for work</span>
       <span>◇ Tbilisi · Georgia</span>
-      <span>◇ 9 hackathons · 2023—2026</span>
+      <span>◇ 10 hackathons · 2023—2026</span>
       <span class="flare">◇ Brussels — Finalist + Zircuit + Zerion 3rd</span>
       <span class="flare">◇ San Francisco — Chronicle 1st · Unlimit</span>
       <span>◇ Prague — Filecoin × Akave 2nd</span>
@@ -618,8 +632,8 @@
 
   <div class="corner-tr">
     <div class="idx">
-      <span class="idx-t1">10 cards</span>
-      <span class="idx-t2">hello + 09 hackathons</span>
+      <span class="idx-t1">11 cards</span>
+      <span class="idx-t2">hello + 10 hackathons</span>
     </div>
   </div>
 
@@ -635,7 +649,6 @@
   <div class="corner-bl" aria-hidden="true">
     <div class="cbl-1">Tbilisi · Georgia</div>
     <div class="cbl-2">41.71° N · 44.82° E</div>
-    <div class="cbl-3">open to work</div>
   </div>
 
   <!-- bottom-right tagline -->
@@ -654,9 +667,10 @@
       <span data-i="4">BRU</span>
       <span data-i="5">LDN</span>
       <span data-i="6">IST</span>
-      <span data-i="7">WAW</span>
-      <span data-i="8">PAR</span>
-      <span data-i="9">BNB</span>
+      <span data-i="7">ROM</span>
+      <span data-i="8">WAW</span>
+      <span data-i="9">PAR</span>
+      <span data-i="10">BNB</span>
     </div>
   </div>
 </div>
@@ -767,12 +781,23 @@ const ENTRIES = [
     name: 'ETHGLOBAL',
     name2:'ISTANBUL',
     meta: 'TÜRKIYE',
-    num:  'N° 2023·04',
+    num:  'N° 2023·05',
     href: 'https://ethglobal.com/showcase/decentralex-jdj8i',
     tone: 'flare',
     project: 'DecentraleX',
     achievements: ['WORLDCOIN · BEST SIGN-IN APP'],
     legendary: true,
+  },
+  {
+    year: '2023',
+    name: 'ETHROME',
+    name2:'ITALIA',
+    meta: 'ROMA · ITALY',
+    num:  'N° 2023·04',
+    href: 'https://taikai.network/ethrome/hackathons/ethrome-23/projects/clng2p89h00k0wu01iw4tvsya/idea',
+    tone: 'acid',
+    project: 'CIAO',
+    achievements: ['WAKU · HONORABLE MENTION'],
   },
   {
     year: '2023',
@@ -1134,6 +1159,7 @@ const posters = ENTRIES.map((entry, i) => {
   const tex = makePosterTexture(entry);
   const mat = new THREE.MeshBasicMaterial({
     map: tex, transparent: true, opacity: 1, depthWrite: false,
+    side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geom, mat);
   mesh.renderOrder = 100 - i; // draw lower indices on top initially
@@ -1146,6 +1172,13 @@ const cursorEl   = document.getElementById('cursor');
 const hintCenter = document.getElementById('hintCenter');
 const stackHead  = document.getElementById('stackHead');
 const stackDots  = Array.from(document.querySelectorAll('.stack-indicator .dots span'));
+
+let hintTimer = null;
+function hideHint() {
+  interacted = true;
+  hintCenter.classList.remove('show');
+  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+}
 
 let targetMouseY = 0;   // scrub target in [0,1] — driven by drag, not cursor
 let mouseY       = 0;   // lerped toward targetMouseY
@@ -1195,7 +1228,7 @@ function stateForOffset(o) {
 function applyState(m, s) {
   m.mesh.position.set(s.x, s.y, s.z);
   m.mesh.rotation.x = s.rotX;
-  m.mesh.rotation.z = m.legendarySpinZ || 0;
+  m.mesh.rotation.y = m.legendarySpinY || 0;
   m.mesh.scale.setScalar(s.scale * (m.legendaryScale || 1));
   m.mat.opacity = s.opacity;
   m.mesh.renderOrder = s.renderOrder;
@@ -1257,7 +1290,7 @@ function raycastPoster(x, y) {
 canvas.addEventListener('pointerdown', (e) => {
   canvas.setPointerCapture(e.pointerId);
   spawnRipple(e.clientX, e.clientY);
-  if (!interacted) { interacted = true; hintCenter.classList.remove('show'); }
+  hideHint();
 
   isDragging       = true;
   dragPointerId    = e.pointerId;
@@ -1323,9 +1356,10 @@ function spawnRipple(x, y) {
 
 // keyboard
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowUp')   { targetMouseY = Math.min(1, Math.round(mouseY * (N-1) + 1) / (N-1)); }
-  if (e.key === 'ArrowDown') { targetMouseY = Math.max(0, Math.round(mouseY * (N-1) - 1) / (N-1)); }
+  if (e.key === 'ArrowUp')   { targetMouseY = Math.min(1, Math.round(mouseY * (N-1) + 1) / (N-1)); hideHint(); }
+  if (e.key === 'ArrowDown') { targetMouseY = Math.max(0, Math.round(mouseY * (N-1) - 1) / (N-1)); hideHint(); }
   if (e.key === 'Enter') {
+    hideHint();
     const m = posters[activeIndex(mouseY * (N-1))];
     if (m?.entry?.href && m.entry.href !== '#') window.open(m.entry.href, '_blank', 'noopener');
   }
@@ -1429,7 +1463,7 @@ stackDots.forEach(dot => {
     const idx = +dot.dataset.i;
     if (Number.isFinite(idx)) {
       targetMouseY = idx / (N - 1);
-      if (!interacted) { interacted = true; hintCenter.classList.remove('show'); }
+      hideHint();
     }
   });
 });
@@ -1547,10 +1581,10 @@ function triggerLegendary(poster) {
   function anim() {
     const t = Math.min(1, (performance.now() - t0) / DUR);
 
-    // Z-axis spin — decaying ease-out
+    // Y-axis spin — full 3D flip, ease-out
     const spinT = Math.min(1, t * 1.1);
     const spinEase = 1 - Math.pow(1 - spinT, 2.4);
-    poster.legendarySpinZ = spinEase * Math.PI * 2;
+    poster.legendarySpinY = spinEase * Math.PI * 2;
 
     // Scale elastic bump
     let sc;
@@ -1562,7 +1596,7 @@ function triggerLegendary(poster) {
 
     if (t < 1) requestAnimationFrame(anim);
     else {
-      poster.legendarySpinZ = 0;
+      poster.legendarySpinY = 0;
       poster.legendaryScale = 1;
       poster.legendaryPlaying = false;
     }
@@ -1617,7 +1651,14 @@ function tick() {
 requestAnimationFrame(() => {
   document.getElementById('boot').classList.add('done');
   tick();
-  setTimeout(() => { if (!interacted) hintCenter.classList.add('show'); }, 700);
+  setTimeout(() => {
+    if (interacted) return;
+    hintCenter.classList.add('show');
+    hintTimer = setTimeout(() => {
+      if (!interacted) hintCenter.classList.remove('show');
+      hintTimer = null;
+    }, 1300);
+  }, 650);
 });
 </script>
 
