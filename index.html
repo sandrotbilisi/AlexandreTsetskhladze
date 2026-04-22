@@ -1187,7 +1187,7 @@ function makePosterTexture(entry) {
   g.fillStyle = entry.tone === 'bone' ? '#141018' : '#4A4450';
   g.font = '500 48px "Azeret Mono", monospace';
   g.textAlign = 'left'; g.textBaseline = 'middle';
-  g.fillText(entry.type === 'about' ? '— HELLO · ALEXANDRE' : '— VERSO · ' + entry.year, 64, STRIP/2);
+  g.fillText(entry.type === 'about' ? '— HELLO' : '— VERSO · ' + entry.year, 64, STRIP/2);
   // markers
   g.textAlign = 'right';
   g.fillText(entry.num, W - 64, STRIP/2);
